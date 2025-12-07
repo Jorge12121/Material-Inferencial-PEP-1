@@ -1,0 +1,137 @@
+  ---
+title: "ep02"
+author: "Jorge Muñoz"
+date: "2025-09-15"
+output: html_document
+---
+
+```{r, include=TRUE}
+
+```
+
+Preguntas
+Equipo 1:
+El Comité Olímpico cree que el mejor tiempo medio de los atletas de la zona Sur después de ingresar al programa de entrenamiento es superior a 12,4 segundos. ¿Soportan los datos esta afirmación?
+
+
+```{r, include=TRUE}
+
+datos<- read.csv2("EP02 Datos.csv")
+
+datos_sur <- datos %>% filter(Zona == "Sur") 
+
+shapiro.test(datos_sur$Posterior)
+
+t.test(datos_sur$Posterior, mu= 12.4, alternative = "greater", conf.level = 0.95 )
+
+```
+
+¿Sugieren los datos que la mejor marca de los atletas de la zona Centro-Norte se reduce en promedio 3,5 segundos tras el entrenamiento?
+
+```{r, include=TRUE}
+
+datos_cnorte<-datos%>%filter( Zona == "Centro-Norte")
+
+shapiro.test(datos_cnorte$Previo )
+shapiro.test(datos_cnorte$Posterior)
+
+t.test(datos_cnorte$Previo, datos_cnorte$Posterior,paired = TRUE , mu= 3.5, alternative = "two.sided", conf.level = 0.95)
+```
+
+¿Es posible afirmar que, en promedio, los atletas de la zona Centro-Norte superaban a los de la zona Centro-Sur por menos de 3 segundos antes del entrenamiento?
+
+```{r, include=TRUE}
+
+shapiro.test(datos_cnorte$Previo)
+shapiro.test(datos_sur$Previo)
+
+t.test(datos_cnorte$Previo, datos_sur$Previo,paired = FALSE, mu= 3, alternative = "less", conf.level = 0.95)
+
+```
+
+¿Será cierto que hay más atletas de la zona Centro-Sur que redujeron sus mejores marcas en al menos 4,3 segundos que atletas de la zona Sur que lo hicieron en al menos 1,4 segundos?
+
+```{r, include=TRUE}
+
+datos_csur <- datos %>% filter(Zona == "Centro-Sur")
+
+datos_sur$Reduccion<-datos_sur$Previo - datos_sur$Posterior
+
+datos_csur$Reduccion <- datos_csur$Previo - datos_csur$Posterior
+
+x1 = sum(datos_sur$Reduccion>=1.4)
+l1 = length(datos_sur$Reduccion)
+
+x2 = sum(datos_csur$Reduccion>=4.3)
+l2 = length(datos_csur$Reduccion)
+
+prop.test( c(x2,x1), c(l2,l1), alternative = "greater", conf.level = 0.95)
+
+```
+
+
+
+Equipo 2:
+El Comité Olímpico cree que el mejor tiempo medio de los atletas de la zona Centro-Sur antes de ingresar al programa de entrenamiento era inferior a 19,8 segundos. ¿Soportan los datos esta afirmación?
+¿Sugieren los datos que la mejor marca de los atletas de la zona Sur se reduce en promedio más de 1,9 segundos tras el entrenamiento?
+¿Es posible afirmar que, en promedio, los atletas de la zona Sur superan a los de la zona Centro-Sur por 2 segundos después del entrenamiento?
+¿Será cierto que hay menos atletas de la zona Centro-Sur quer edujeron sus mejores marcas en al menos 5,5 segundos que atletas de la zona Centro-Norte que lo hicieron en al menos 3 segundos?
+
+
+
+
+Equipo 3:
+El Comité Olímpico cree que el mejor tiempo medio de los atletas de la zona Centro-Norte después de ingresar al programa de entrenamiento es de 13,6 segundos. ¿Soportan los datos esta afirmación?
+¿Sugieren los datos que la mejor marca de los atletas de la zona Centro-Sur se reduce en promedio menos de 4,7 segundos tras el entrenamiento?
+¿Es posible afirmar que, en promedio, los atletas de la zona Sur superaban a los de la zona Centro-Norte por más de 2 segundos antes del entrenamiento?
+¿Será cierto que hay más atletas de la zona Centro-Norte que redujeron sus mejores marcas en al menos 2,9 segundos que atletas de la zona Sur que lo hicieron en al menos 1,9 segundos?
+
+
+
+
+Equipo 4:
+El Comité Olímpico cree que el mejor tiempo medio de los atletas de la zona Sur antes de ingresar al programa de entrenamiento era inferior a 14,3 segundos. ¿Soportan los datos esta afirmación?
+¿Sugieren los datos que la mejor marca de los atletas de la zona Centro-Norte se reduce en promedio más de 3,4 segundos tras el entrenamiento?
+¿Es posible afirmar que, en promedio, los atletas de la zona Centro-Norte superan a los de la zona Centro-Sur por 1 segundo después del entrenamiento?
+¿Será cierto que hay menos atletas de la zona Centro-Sur que redujeron sus mejores marcas en al menos 5,1 segundos que atletas de la zona Sur que lo hicieron en al menos 1,3 segundos?
+
+
+
+
+Equipo 5:
+El Comité Olímpico cree que el mejor tiempo medio de los atletas de oriental después de ingresar al programa de entrenamiento es superior a 14,9 segundos. ¿Soportan los datos esta afirmación?
+¿Sugieren los datos que la mejor marca de los atletas de la zona Sur se reduce en promedio menos de 1,3 segundos tras el entrenamiento?
+¿Es posible afirmar que, en promedio, los atletas de la zona Sur superaban a los de la zona Centro-Sur por más de 5,8 segundos antes del entrenamiento?
+¿Será cierto que hay más atletas de la zona Centro-Sur que redujeron sus mejores marcas en al menos 4,8 segundos que atletas de la zona Centro-Norte que lo hicieron en al menos 3,2 segundos?
+
+
+
+
+Equipo 6:
+El Comité Olímpico cree que el mejor tiempo medio de los atletas de la zona Centro-Norte antes de ingresar al programa de entrenamiento era 16,2 segundos. ¿Soportan los datos esta afirmación?
+¿Sugieren los datos que la mejor marca de los atletas de la zona Centro-Sur se reduce en promedio 4,7 segundos tras el entrenamiento?
+¿Es posible afirmar que, en promedio, los atletas de la zona Sur superan a los de la zona Centro-Norte por menos de 1 segundo después del entrenamiento?
+¿Será cierto que hay menos atletas de la zona Centro-Norte que redujeron sus mejores marcas en al menos 3,5 segundos que atletas de la zona Sur que lo hicieron en al menos 1,4 segundos?
+
+
+
+Equipo 7:
+El Comité Olímpico cree que el mejor tiempo medio de los atletas de la zona Sur después de ingresar al programa de entrenamiento es 12,9 segundos. ¿Soportan los datos esta afirmación?
+¿Sugieren los datos que la mejor marca de los atletas de la zona Centro-Norte se reduce en promedio menos de 2,8 segundos tras el entrenamiento?
+¿Es posible afirmar que, en promedio, los atletas de la zona Centro-Norte superan a los de la zona Centro-Sur por más de 1,6 segundos después del entrenamiento?
+¿Será cierto que hay más atletas de la zona Centro-Sur que redujeron sus mejores marcas en al menos 4,7 segundos que atletas de la zona Sur que lo hicieron en al menos 1,7 segundos?
+Equipo 8:
+El Comité Olímpico cree que el mejor tiempo medio de los atletas de la zona Centro-Sur antes de ingresar al programa de entrenamiento era 19,4 segundos. ¿Soportan los datos esta afirmación?
+¿Sugieren los datos que la mejor marca de los atletas de la zona Sur se reduce en promedio 1,3 segundos tras el entrenamiento?
+¿Es posible afirmar que, en promedio, los atletas de la zona Sur superaban a los de la zona Centro-Sur por menos de 5,2 segundos antes del entrenamiento?
+¿Será cierto que hay menos atletas de la zona Centro-Sur que redujeron sus mejores marcas en al menos 5,2 segundos que atletas de la zona Centro-Norte que lo hicieron en al menos 2,8 segundos?
+Equipo 9:
+El Comité Olímpico cree que el mejor tiempo medio de los atletas de la zona Centro-Norte después de ingresar al programa de entrenamiento es superior a 13,2 segundos. ¿Soportan los datos esta afirmación?
+¿Sugieren los datos que la mejor marca de los atletas de la zona Centro-Sur se reduce en promedio más de 5,2 segundos tras el entrenamiento?
+¿Es posible afirmar que, en promedio, los atletas de la zona Sur superan a los de la zona Centro-Norte por 1,3 segundos después del entrenamiento?
+¿Será cierto que hay más atletas de la zona Centro-Norte que redujeron sus mejores marcas en al menos 2,6 segundos que atletas de la zona Sur que lo hicieron en al menos 1,5 segundos?
+Equipo 10:
+El Comité Olímpico cree que el mejor tiempo medio de los atletas de la zona Sur antes de ingresar al programa de entrenamiento era inferior a 14,3 segundos. ¿Soportan los datos esta afirmación?
+¿Sugieren los datos que la mejor marca de los atletas de la zona Centro-Norte se reduce en promedio 3,4 segundos tras el entrenamiento?
+¿Es posible afirmar que, en promedio, los atletas de la zona Centro-Norte superaban a los de la zona Centro-Sur por 2,9 segundos antes del entrenamiento?
+¿Será cierto que hay menos atletas de la zona Centro-Sur que redujeron sus mejores marcas en al menos 5,3 segundos que atletas de la zona Sur que lo hicieron en al menos 1,4 segundos?

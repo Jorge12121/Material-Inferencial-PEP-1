@@ -1,0 +1,87 @@
+---
+title: "EP05"
+author: "Jorge Muñoz"
+date: "2025-10-29"
+output: html_document
+---
+
+```{r, include=TRUE}
+
+```
+
+En una emocionante competencia de cubos Rubik, participantes de Chile, Argentina, Colombia, Uruguay, Perú y Ecuador demostraron su destreza en resolver tres tipos de cubos: 2x2x2, 3x3x3 y Megaminx.
+
+Después del torneo, un grupo de investigadores de la Asociación Mundial del Cubo, interesado en los tiempos que hicieron las jugadoras y los jugadores en la competencia, decidieron estudiar si el país y el tipo de cubo usado en cada prueba tienen influencia en los segundos que se tardan en resolverlos. Para ello usaron una muestra aleatoria de los datos de la competencia, en la cual participaron más de 2.000 personas, con las siguientes variables:
+
+
+Equipo 1:
+¿Existen diferencias en el tiempo de resolución de cubos 2x2x2 entre participantes de Chile, Perú y Argentina?
+
+```{r, include=TRUE}
+library(dplyr)
+library(ggplot2)
+library(ggpattern)
+library(ggpubr)
+datos <- read.csv2("EP05 Datos.csv")
+
+datos_filtrados <- datos %>% filter(tipo == "2x2x2" &( pais == "Chile" | pais =="Perú" | pais =="Argentina"))
+```
+
+
+H0 = no existe diferencia de tiempo de resolucion de cubos 2x2x2 entre los participantes de chile, peru, argentina 
+
+HA = si existe diferencia perceptible 
+
+
+condiciones:
+
+normalidad
+
+```{r, include=TRUE}
+library(ggpubr)
+#Comprobar la condición de normalidad con gráficos Q-Q
+g1 <- ggqqplot (datos_filtrados, x = "tiempo" , y = "pais" , color = "pais", alpha = 0.5,
+                palette = c("steelblue", "steelblue1", "steelblue4") )
+g1 <- g1 + facet_wrap(~ pais)
+g1 <- g1 + rremove ("x.ticks") + rremove ("x.text")
+g1 <- g1 + rremove ("y.ticks") + rremove ("y.text")
+g1 <- g1 + rremove ("axis.title")
+print (g1)
+```
+
+ahora haremos el shapiro_test
+
+```{r, include=TRUE}
+chile<- datos_filtrados %>% filter(pais == "Chile")
+peru<- datos_filtrados %>% filter(pais == "Perú")
+argentina<- datos_filtrados%>% filter(pais == "Argentina")
+
+shapiro.test(chile$tiempo)
+shapiro.test(argentina$tiempo)
+shapiro.test(peru$tiempo)
+
+```
+como todos los valores p son mayores a 0.05 podemos rechazar la hipotesis nula y podemos concluir con un 95% de confianza que los datos siguen una distribucion normal 
+
+independencia en la toma de muestras : como en el enunciado se nos indica que se tomo la muestra de manera aleatoria podemos concluir que son independientes 
+
+
+homogeniedad de varianza : para averiguar esto ejecutamos el test ezANOVA que nos realiza una analisis de homogestecidad.
+
+
+ejecucion de la prueba anova:
+
+```{r, include=TRUE}
+library("ez")
+datos_filtrados$id<- as.factor(datos_filtrados$id)
+datos_filtrados$pais<- as.factor(datos_filtrados$pais)
+resultado <- ezANOVA(datos_filtrados, dv =tiempo ,between = pais, wid = id, return_aov = TRUE)
+print(resultado)
+```
+
+podemos observar que el test de homogeniedad obtuvo un valor p de 0.744... lo que es mayor que 0.05 lo que nos indica que no se puede rechazar la hipotesis de no homogenidad con un 95% de confianza
+
+
+
+
+

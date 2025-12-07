@@ -1,0 +1,104 @@
+---
+title: "ep1"
+author: "Jorge Muñoz"
+date: "2025-09-15"
+output: html_document
+---
+
+```{r, include=TRUE}
+
+```
+
+Obtener el archivo (en la carpeta compartida para este ejercicio) con una selección de datos públicos recopilados por la encuesta Casen 2017 en la Región Metropolitana. La siguiente es una breve descripción de las columnas seleccionadas:
+folio: identificador del hogar
+o: número de orden de la persona dentro del hogar
+id.vivienda: identificador de la vivienda
+hogar: identificación del hogar en la vivienda
+region: region
+provincia: provincia
+comuna: comuna
+ing.comuna: posición en el ranking histórico del ingreso de la comuna (ascendente)
+zona: área geográfica (Urbano, Rural)
+sexo: sexo de la persona registrada
+edad: edad de la persona registrada
+ecivil: estado civil de la persona registrada
+ch1: situación ocupacional de la persona registrada
+ytot: ingreso total
+Considerar la pregunta asignada a su equipo.
+Discutir y consensuar qué medidas estadísticas (media, mediana, moda, etc.) y qué forma gráfica ayudaría a responder la pregunta asignada.
+Construir un script en R que produzca los estadísticos y el gráfico seleccionado.
+Documentar en el script el objetivo de cada estadístico, una descripción de lo que se ve en el gráfico y la respuesta a la pregunta planteada.
+Antes que venza el plazo para esta actividad (18:00 del próximo sábado), cada equipo debe subir la respuesta con el nombre "EP01-respuesta-equipo-i", donde i es el número de equipo asignado, a la carpeta compartida para este fin.
+Calcular j = (i mod n) + 1, donde n es la cantidad de equipos; descargar la respuesta del equipo j y aplicar la rúbrica publicada para este EP.
+Subir la rúbrica completada, en formato PDF, con el nombre "EP01-resultado-equipo-j" a la carpeta compartida antes de las 20:00 hrs. del próximo lunes.
+Preguntas
+Equipo 1:
+¿Se encuestaron más o menos la misma cantidad de gente en cada provincia de la RM?
+
+```{r, include=TRUE}
+
+library(dplyr)
+library(ggplot2)
+
+datos<-read.csv2("EP01 Datos Casen 2017.csv")
+
+conteo_provincias <- datos %>% count(provincia, name= "total_encuestados")
+
+
+
+# Construir el gráfico de barras
+grafico_provincias <- conteo_provincias %>% 
+  ggplot(aes(x = provincia, y = total_encuestados)) +
+  geom_bar(stat = "identity", fill = "skyblue") +
+  geom_text(aes(label = total_encuestados), vjust = -0.5) +
+  labs(title = "Número de encuestados por provincia en la Región Metropolitana",
+       x = "Provincia",
+       y = "Número de encuestados") +
+  theme_minimal() +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+
+# Mostrar el gráfico
+print(grafico_provincias)
+```
+
+Equipo 2
+¿Tienen hombres y mujeres ingresos similares en la RM?
+
+```{r, include=TRUE}
+
+datos_h <- datos %>% 
+  filter(sexo =="Hombre") %>% 
+    select(sexo,ytot)
+datos_m <- datos %>% 
+  filter(sexo =="Mujer") %>% 
+    select(sexo,ytot)
+
+media_h <- mean(datos_h$ytot)
+media_m <- mean(datos_m$ytot)
+
+desv_h <- sd(datos_h$ytot)
+desv_m <- sd(datos_m$ytot)
+
+mediana_h <- median(datos_h$ytot)
+mediana_m <- median(datos_m$ytot)
+
+
+
+```
+
+Equipo 3
+¿Se distribuye de igual manera la situación ocupacional de los hombres que viven en áreas rurales y quienes viven en áreas urbanas de la RM?
+Equipo 4
+¿Son similares los ingresos registrados en las diferentes provincias de la RM?
+Equipo 5
+¿Van los ingresos de las mujeres de la RM incrementándose con la edad?
+Equipo 6
+¿Cómo diría que es el ingreso de los hombres de la RM? (simétrico/asimétrico, concentrado/disperso, unimodal/multimodal, etc.)
+Equipo 7
+¿Tiene relación el ingreso de las mujeres de la RM con el riqueza del municipio donde habita?
+Equipo 8
+¿Cómo diría que es el ingreso de las mujeres de la RM? (simétrico/asimétrico, concentrado/disperso, unimodal/multimodal, etc.)
+Equipo 9
+El nivel de ingreso de las mujeres de la RM ¿varía con el estado civil?
+Equipo 10
+Los ingresos de los habitantes de la RM, ¿van incrementándose con la edad de forma similar en hombres y mujeres?

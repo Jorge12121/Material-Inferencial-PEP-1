@@ -1,0 +1,177 @@
+---
+title: "EP3"
+author: "Jorge Muñoz"
+date: "2025-09-03"
+output: html_document
+---
+
+```{r, include=TRUE}
+
+library(ggpattern)
+library(ggpubr)
+
+# Definir los valores fijados en el enunciado
+n <- 100
+media_nula <- 10
+sigma <- 1
+umbral <- 9.82
+# Calcular el error estandar
+SE <- sigma / sqrt(n)
+
+alpha <- pnorm(umbral, mean = media_nula, sd = SE)
+alpha
+
+# Primero, el grafico base
+g_x_limites <- media_nula + c(-7, 7) * SE
+g <- ggplot() + xlim(g_x_limites) + ylim(c(0, 5))
+g <- g + labs(title = "Distribución muestral de las medias",
+              x = "Litros", y = "Densidad")
+g <- g + theme_pubr()
+
+# Agregamos la hipotesis nula
+dist_0 <- stat_function(fun = dnorm, geom = "area",
+                       args = list(mean = media_nula, sd = SE),
+                       colour = "steelblue4", fill = "steelblue4", alpha = 0.2)
+g1 <- g + dist_0
+g1 <- g1 + geom_vline(xintercept = media_nula, colour = "steelblue4")
+
+# Región crítica: umbral definido por la regla de decisión
+z_critico_inferior <- umbral
+
+g2 <- g1 + stat_function(fun = dnorm, geom = "area",
+                        args = list(mean = media_nula, sd = SE),
+                        xlim = c(g_x_limites[1], z_critico_inferior),
+                        fill = "steelblue4", alpha = 0.4)
+
+# Línea vertical del umbral
+g2 <- g2 + geom_vline(xintercept = z_critico_inferior, colour = "red", linetype = "dashed")
+
+print(g2)
+
+
+```
+
+```{r, include=TRUE}
+library(ggpattern)
+library(ggpubr)
+
+# Definir los valores verdaderos
+media_verdadera <- 9.7
+delta <- media_nula - media_verdadera
+
+# Agregar la verdadera distribucion muestral de las medias
+g3 <- g2 + stat_function(fun = dnorm, geom = "area",
+                        args = list(mean = media_verdadera, sd = SE),
+                        colour = "darkorange", fill = "darkorange", alpha = 0.2)
+g3 <- g3 + geom_vline(xintercept = media_verdadera, colour = "darkorange")
+
+# Anotar tamaño del efecto (delta)
+x_ann <- c(media_verdadera, media_nula)
+y_ann <- c(dnorm(media_verdadera, mean = media_verdadera, sd = SE),
+          dnorm(media_nula, mean = media_nula, sd = SE))
+y_ann <- y_ann + 0.005
+
+g4 <- g3 + annotate("segment", x = x_ann[1], y = y_ann[1],
+                   xend = x_ann[2], yend = y_ann[2],
+                   arrow = arrow(angle = 10, length = unit(0.03, "npc"),
+                                 ends = "both", type = "open")) +
+           annotate("text", x = mean(x_ann), y = y_ann[1] + 0.015,
+                   label = "delta", vjust = "top", parse = TRUE)
+
+print(g4)
+
+# Regiones críticas bajo H1
+g5 <- g3 + stat_function(fun = dnorm, geom = "area",
+                        args = list(mean = media_verdadera, sd = SE),
+                        xlim = c(g_x_limites[1], z_critico_inferior),
+                        fill = "darkorange", alpha = 0.4) +
+           stat_function(fun = dnorm, geom = "area_pattern",
+                        args = list(mean = media_verdadera, sd = SE),
+                        xlim = c(z_critico_inferior, 10),
+                        fill = "white", colour = "darkorange", alpha = 0.3,
+                        pattern_spacing = 0.15, pattern_density = 0.4,
+                        pattern_fill = "darkorange", pattern_colour = "darkorange",
+                        pattern_angle = 45, pattern_alpha = 0.3)
+
+# Anotaciones dentro del rango (evita warnings)
+g5 <- g5 + annotate("text", x = 9.75, y = 0.2, label = "poder", parse = TRUE) +
+           annotate("text", x = 9.9, y = 0.15, label = "beta", parse = TRUE)
+
+print(g5)
+
+# Calcular y mostrar el poder y beta
+poder <- pnorm(z_critico_inferior, mean = media_verdadera, sd = SE, lower.tail = TRUE)
+cat(paste("Poder = ", poder, "\n"))
+
+beta <- 1 - poder
+cat(paste("Beta = ", beta, "\n"))
+
+```
+
+```{r, include=TRUE}
+library(ggplot2)
+library(ggpattern)
+library(ggpubr)
+
+# Parámetros conocidos
+n <- 100
+sigma <- 1
+SE <- sigma / sqrt(n)
+umbral <- 9.82
+
+# Secuencia de medias verdaderas a evaluar
+mu_seq <- seq(9.3, 10, by = 0.01)
+
+# Poder para cada mu: P(rechazar H0 | mu) = P(Xbar < umbral | mu)
+power_vec <- pnorm(umbral, mean = mu_seq, sd = SE)
+
+# Data frame para ggplot
+df_power <- data.frame(mu = mu_seq, power = power_vec)
+
+# Valores destacados
+mu_focus <- 9.7
+power_mu_focus <- pnorm(umbral, mean = mu_focus, sd = SE)
+alpha_at_10 <- pnorm(umbral, mean = 10, sd = SE)
+
+# Plot de la curva de poder
+p_power <- ggplot(df_power, aes(x = mu, y = power)) +
+  geom_line(size = 1) +
+  annotate("point", x = mu_focus, y = power_mu_focus, size = 3, colour = "darkorange") +
+  geom_vline(xintercept = mu_focus, linetype = "dashed", colour = "darkorange") +
+  geom_vline(xintercept = 10, linetype = "dashed", colour = "steelblue4") +
+  geom_hline(yintercept = 0.8, linetype = "dotted") +
+  annotate("text", x = mu_focus + 0.02, y = power_mu_focus + 0.03, 
+           label = paste0("mu = ", mu_focus, "\nPoder = ", round(power_mu_focus, 4)),
+           colour = "darkorange", hjust = 0) +
+  annotate("text", x = 9.98, y = alpha_at_10 + 0.03,
+           label = paste0("mu = 10\nalpha = ", round(alpha_at_10, 4)),
+           colour = "steelblue4", hjust = 1) +
+  labs(title = "Curva de poder (rechazar si X̄ < 9.82) — n = 100, σ = 1",
+       x = expression(mu),
+       y = "P(rechazar H0 | mu)") +
+  scale_x_continuous(breaks = seq(9.3, 10, by = 0.1)) +
+  theme_pubr()
+
+print(p_power)
+
+# Mostrar valores numéricos relevantes en consola
+cat(paste0("Poder en mu = ", mu_focus, " -> ", round(power_mu_focus, 6), "\n"))
+cat(paste0("Alpha (mu = 10) -> ", round(alpha_at_10, 6), "\n"))
+
+
+```
+
+```{r, include=TRUE}
+library(pwr)
+
+significancia <- 0.05
+efecto <- (10 - 9.7) / 1   # d = 0.3
+
+resultado <- pwr.t.test(d = efecto,
+                        sig.level = significancia,
+                        power = 0.8,
+                        type = "one.sample")
+
+resultado
+
+```

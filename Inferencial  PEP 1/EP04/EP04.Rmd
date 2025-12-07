@@ -1,0 +1,87 @@
+---
+title: 'EP04'
+author: "Jorge Muñoz"
+date: "2025-09-13"
+output: html_document
+---
+
+
+**1)** Se llevó a cabo una investigación entre dos grupos demográficos: residentes urbanos y suburbanos. Seleccionaron aleatoriamente 35 residentes urbanos y 30 residentes suburbanos, y se les preguntó sobre su preferencia de transporte para desplazarse en la ciudad entre tres opciones comunes, obteniéndose que de los primeros 8 usan el Metro, 12 usan bicicletas y 10 su vehículo particular. mientras que entre los segundos 12 prefieren el Metro, 15 las bicicletas y 8 el vehículo particular.
+
+la pregunta es: ¿Son iguales las distribuciones de las preferencias de transporte entre los dos grupos demográficos?
+
+Analizando los datos podemos observar que tenemos dos grupos independientes y una variable categórica con más de 2 niveles que son las 3 categorias de transporte , por lo tanto la prueba adecuada para este caso es la chi-cuadrado de Pearson de homogeneidad que nos permite observar si la distribución de preferencias es igual en ambos grupos: 
+
+Donde las hipótesis son: 
+
+H0: La distribución de las preferencias de transporte es la misma en los residentes urbanos y suburbanos.
+
+H1: La distribución de las preferencias de transporte difiere entre los residentes urbanos y suburbanos.
+
+Para realizar la prueba primero creamos la tabla de contingencia:
+
+
+```{r, include=TRUE}
+
+transporte <- matrix(c(8,12,10,
+                       12,15,8),
+                     nrow = 2, byrow = TRUE)
+
+colnames(transporte) <- c("Metro","Bicicleta","Vehiculo")
+rownames(transporte) <- c("Urbano","Suburbano")
+
+transporte 
+
+
+```
+
+y luego realizamos la prueba correspondiente:
+
+```{r, include=TRUE}
+test_transporte<- chisq.test(transporte)
+test_transporte
+
+```
+dado que el valor de p es de 0.6136 que es mayor que 0.05 se puede concluir que no existen diferencias significativas en ambos grupos demograficos, por lo tanto no se puede rechazar la hipotesis nula 
+
+
+
+**2)** Un hotel está implementando un nuevo protocolo de limpieza para mejorar la calidad de servicio y la satisfacción de sus huéspedes. Para evaluar la efectividad de este protocolo, se seleccionaron aleatoriamente 25 habitaciones y se aplicó el protocolo de limpieza antiguo y nuevo de forma alternada. Después de la primera limpieza, se evaluó la calidad de limpieza de cada habitación. Luego, después de la segunda limpieza con el protocolo alternativo, se volvió a evaluar la calidad de limpieza. Los resultados se presentan a continuación:
+
+
+ • 5 habitaciones mostraron una calidad de limpieza baja en ambas ocasiones.
+ 
+ • 5 habitaciones con calidad de limpieza baja con el protocolo antiguo mostraron una mejora con el nuevo.
+ 
+ • 8 habitaciones mantuvieron una alta calidad de limpieza con ambos protocolos.
+ 
+ • 7 habitaciones mostraron una alta calidad de limpieza con el protocolo antiguo, pero una disminución con el protocolo nuevo.
+
+La pregunta es la siguiente: ¿Hay evidencia de que el nuevo protocolo de limpieza haya tenido un efecto significativo en la calidad de limpieza de las habitaciones del hotel?
+
+Para responder la pregunta analizamos los datos y observamos que estamos en presencia de dos mediciones dicotómicas ya que cada habitacion fue evaluada dos veces con el protocolo antiguo y nuevo. La prueba adecuada para este caso es prueba McNemar 
+
+Donde las hipotesis son: 
+
+H0: No hay diferencia en la calidad de limpieza entre el protocolo antiguo y el nuevo.
+
+H1: Existe una diferencia en la calidad de limpieza entre el protocolo antiguo y el nuevo.
+
+Para aplicar dicha prueba primero creamos la tabla de contingencia 
+
+```{r, include=TRUE}
+limpieza <- matrix(c(5,5,7,8), nrow=2, byrow=TRUE,
+                   dimnames = list("Antiguo"=c("Baja","Alta"),
+                                   "Nuevo"=c("Baja","Alta")))
+limpieza
+```
+
+Y aplicamos la prueba: 
+
+```{r, include=TRUE}
+# Prueba de McNemar
+test_limpieza <- mcnemar.test(limpieza, correct = TRUE)
+test_limpieza
+```
+
+Dado que p es mayor que 0.05 no hay evidencia de que el nuevo protocolo sea mejor, por lo tanto no se rechaza la hipotesis nula.
