@@ -1,0 +1,343 @@
+---
+title: "Anova"
+author: "Jorge Muñoz"
+date: "2025-12-07"
+output: html_document
+---
+
+
+## **ANOVA muestras indepenientes** ##
+```{r, include=TRUE}
+################################################################
+# SCRIPT 9.1: VERIFICACIÓN GRÁFICA DE NORMALIDAD PARA ANOVA DE UNA VÍA
+################################################################
+
+library(DescTools)
+library(dplyr)
+library(ez)
+library(ggpubr)
+library(tidyr)
+
+alfa <-0.05
+# Crear la matriz de datos en formato ancho
+A <- c(23, 19, 25, 23, 20)
+B <- c(26, 24, 28, 23, 29)
+C <- c(19, 24, 20, 21, 17)
+datos_anchos <- data.frame(A, B, C)
+
+# Llevar la matriz a formato largo
+datos_largos <- datos_anchos |>
+    pivot_longer(c("A", "B", "C"), names_to = "Algoritmo", values_to = "Tiempo") |>
+    mutate(Instancia = factor(1:n())) |>
+    mutate(Algoritmo = factor(Algoritmo))
+
+# Comprobar la condición de normalidad con gráficos Q-Q
+g1 <- ggqqplot(datos_largos, x = "Tiempo", y = "Algoritmo", color = "Algoritmo", alpha = 0.7,
+               palette = c("steelblue", "steelblue1", "steelblue4"))
+g1 <- g1 + facet_wrap(~Algoritmo)
+g1 <- g1 + rremove("x.ticks") + rremove("x.text")
+g1 <- g1 + rremove("y.ticks") + rremove("y.text")
+g1 <- g1 + rremove("axis.title")
+print(g1) # Comentado para no interrumpir el flujo
+
+
+################################################################
+# SCRIPT 9.2: PROCEDIMIENTO ANOVA CON aov()
+################################################################
+
+# Realizar y mostrar el procedimiento ANOVA con aov()
+prueba_aov <- aov(Tiempo ~ Algoritmo, data = datos_largos)
+
+cat("Procedimiento ANOVA usando aov\n")
+cat("----\n")
+print(summary(prueba_aov))
+
+
+################################################################
+# SCRIPT 9.3: PROCEDIMIENTO ANOVA CON ezANOVA()
+################################################################
+
+# Realizar y mostrar el procedimiento ANOVA con ezANOVA()
+prueba_ez <- ezANOVA(data = datos_largos, dv = Tiempo, between = Algoritmo,
+                     wid = Instancia, return_aov = TRUE, detailed = TRUE)
+
+cat("\nProcedimiento ANOVA usando ezANOVA\n")
+cat("\n")
+print(prueba_ez)
+
+
+################################################################
+# SCRIPT 9.4: GRÁFICO DE INTERVALOS DE CONFIANZA CON ezPlot()
+################################################################
+
+# Obtener, cambiar colores y mostrar el gráfico del tamaño del efecto
+g2 <- ezPlot(data = datos_largos, dv = Tiempo, wid = Instancia, between = Algoritmo,
+             y_lab = "Tiempo promedio de ejecución [ms]", x = Algoritmo)
+
+g2 <- g2 + theme_pubr()
+# Cambiar colores de los puntos, líneas y barras de error
+g2[["layers"]][[1]][["aes_params"]] <- list(colour = "steelblue", alpha = 0.7) # puntos
+g2[["layers"]][[2]][["aes_params"]] <- list(colour = "steelblue", alpha = 0.7) # líneas
+g2[["layers"]][[3]][["aes_params"]] <- list(colour = "steelblue", alpha = 0.7) # error
+
+print(g2) # Comentado para no interrumpir el flujo
+
+
+################################################################
+# SCRIPT 9.5: PROCEDIMIENTO POST-HOC CON pairwise.t.test()
+################################################################
+
+# Realizar y mostrar un procedimiento post-hoc de Holm
+holm <- pairwise.t.test(datos_largos[["Tiempo"]], datos_largos[["Algoritmo"]],
+                        p.adj = "holm", pool.sd = TRUE, paired = FALSE,
+                        conf.level = 1 - alfa)
+
+cat("\nProcedimiento post-hoc de Holm\n")
+cat("\n")
+print(holm)
+cat("\n")
+
+# Realizar y mostrar un procedimiento post-hoc de Benjamini y Hochberg
+bh <- pairwise.t.test(datos_largos[["Tiempo"]], datos_largos[["Algoritmo"]],
+                      p.adj = "fdr", pool.sd = TRUE, paired = FALSE,
+                      conf.level = 1 - alfa)
+
+cat("\nProcedimiento post-hoc de Benjamini y Hochberg\n")
+cat("\n")
+print(bh)
+
+
+################################################################
+# SCRIPT 9.6: PROCEDIMIENTO POST-HOC HSD DE Tukey
+################################################################
+
+# Nota: Requiere que 'prueba_aov' del SCRIPT 9.2 haya sido ejecutada.
+
+hsd <- TukeyHSD(prueba_aov, "Algoritmo", ordered = TRUE, conf.level = 1 - alfa)
+
+cat("\nProcedimiento HSD de Tukey\n")
+cat("\n")
+print(hsd)
+
+
+################################################################
+# SCRIPT 9.7: PROCEDIMIENTO POST-HOC DE Scheffé
+################################################################
+
+# Nota: Requiere que 'prueba_aov' del SCRIPT 9.2 haya sido ejecutada.
+
+# Crear matriz de contrastes para la prueba de Scheffé
+# Se define como filas: A-B, A-C, B-C, A vs B&C, B vs A&C, C vs A&B
+contrastes <- matrix(c(1, -1, 0,
+                       1, 0, -1,
+                       0, 1, -1,
+                       1, -0.5, -0.5,
+                       -0.5, 1, -0.5,
+                       -0.5, -0.5, 1),
+                     ncol = 3, byrow = TRUE)
+
+# Trasponer matriz de contrastes (para que cada contraste sea una columna).
+contrastes <- t(contrastes)
+
+# Realizar y mostrar un procedimiento post-hoc de Scheffé
+scheffe <- ScheffeTest(x = prueba_aov, which = "Algoritmo",
+                       contrasts = contrastes, conf.level = 1 - alfa)
+
+cat("\nProcedimiento post-hoc de Scheffé\n")
+cat("---\n")
+print(scheffe)
+```
+
+
+
+## **ANOVA muestras correlacionadas** ##
+
+```{r, include=TRUE}
+
+################################################################
+# SCRIPT 10.1: VERIFICACIÓN GRÁFICA DE NORMALIDAD (ANOVA CORRELACIONADA)
+################################################################
+
+
+library(ggpubr)
+
+library(ggplot2)
+library(emmeans)
+library(ez)
+library(ggpubr)
+library(stringr)
+library(tidyr)
+
+alfa<-0.05
+# Crear la matriz de datos (formato ancho, con Instancia como factor)
+Instancia <- factor(1:6)
+Bubblesort <- c(31.6, 29.3, 30.7, 30.8, 29.8, 30.3)
+Mergesort <- c(25.0, 25.7, 25.7, 23.7, 25.5, 24.7)
+Quicksort <- c(23.2, 22.6, 23.4, 23.3, 21.8, 23.9)
+Radixsort <- c(30.1, 28.4, 28.7, 28.3, 29.9, 29.1)
+datos_anchos <- data.frame(Instancia, Bubblesort, Mergesort, Quicksort, Radixsort)
+
+# Llevar los datos a formato largo
+datos_largos <- datos_anchos |>
+    pivot_longer(-Instancia, names_to = "Algoritmo", values_to = "Tiempo") |>
+    mutate(Algoritmo = factor(Algoritmo))
+
+# Verificar normalidad por medio de gráficos Q-Q
+g1 <- ggqqplot(datos_largos, x = "Tiempo", y = "Algoritmo",
+               color = "Algoritmo", alpha = 0.7,
+               palette = c("steelblue", "steelblue1", "cornflowerblue", "steelblue4"))
+g1 <- g1 + rremove("x.ticks") + rremove("x.text")
+g1 <- g1 + facet_wrap(~Algoritmo)
+g1 <- g1 + rremove("y.ticks") + rremove("y.text")
+g1 <- g1 + rremove("axis.title")
+print(g1) # Comentado para no interrumpir el flujo
+
+
+################################################################
+# SCRIPT 10.2: PROCEDIMIENTO ANOVA CORRELACIONADA (OMNIBUS)
+################################################################
+
+cat("Procedimiento ómnibus\n")
+cat("===========\n\n")
+
+# Realizar y mostrar el procedimiento ANOVA para muestras repetidas con aov()
+prueba_aov <- aov(Tiempo ~ Algoritmo + Error(Instancia / Algoritmo), data = datos_largos)
+
+cat("Procedimiento ANOVA para muestras repetidas usando la función aov()\n")
+cat("----\n")
+print(summary(prueba_aov))
+
+# Realizar y mostrar el procedimiento ANOVA para muestras repetidas con ezANOVA()
+prueba_ez <- ezANOVA(data = datos_largos, dv = Tiempo, wid = Instancia, within = Algoritmo)
+
+cat("\nProcedimiento ANOVA para muestras repetidas usando la función ezANOVA()\n")
+cat("---\n")
+print(prueba_ez)
+
+
+################################################################
+# SCRIPT 10.3: GRÁFICO DEL TAMAÑO DEL EFECTO CON ezPlot()
+################################################################
+
+# Obtener y mostrar un gráfico del tamaño del efecto
+g2 <- ezPlot(data = datos_largos, dv = Tiempo, wid = Instancia, within = Algoritmo,
+             y_lab = "Tiempo promedio de ejecución [ms]", x = Algoritmo)
+
+# Cambiar colores
+g2 <- g2 + theme_pubr()
+g2[["layers"]][[1]][["aes_params"]][["colour"]] <- "steelblue" # Puntos
+g2[["layers"]][[2]][["aes_params"]][["colour"]] <- "steelblue" # Líneas
+g2[["layers"]][[3]][["aes_params"]][["colour"]] <- "steelblue" # Barras de error
+print(g2) # Comentado para no interrumpir el flujo
+
+
+################################################################
+# SCRIPT 10.5: OBTENER MEDIAS MARGINALES ESTIMADAS (EMM)
+################################################################
+
+# Nota: Requiere que 'prueba_aov' del SCRIPT 10.2 haya sido ejecutada.
+
+# Obtener y mostrar las medias marginales estimadas por el modelo
+medias_estimadas <- emmeans(prueba_aov, "Algoritmo")
+
+cat("\nMedias marginales estimadas\n")
+cat("---\n")
+# El argumento 'null' se fija en la media de la muestra completa para el test t
+media_total <- mean(datos_largos[["Tiempo"]])
+print(summary(medias_estimadas, infer = TRUE, level = 1 - alfa,
+              null = media_total))
+
+
+################################################################
+# SCRIPT 10.6: ANÁLISIS POST-HOC CON emmeans (Tukey y Scheffé)
+################################################################
+
+# Nota: Requiere que 'medias_estimadas' del SCRIPT 10.5 haya sido ejecutada.
+
+# Realizar y mostrar un procedimiento post-hoc HSD de Tukey
+hsd <- contrast(medias_estimadas, method = "pairwise", level = 1 - alfa, adjust = "tukey")
+cat("\nProcedimiento HSD de Tukey\n")
+cat("\n")
+print(summary(hsd, infer = TRUE))
+
+# Crear la lista de contrastes a analizar con la prueba aov de Scheffé
+contrastes_scheffe <- list(
+    "Mergesort - Bubblesort" = c(-1, 1, 0, 0),
+    "Mergesort - Radixsort" = c(0, 1, 0, -1),
+    "Mergesort - Quicksort" = c(0, 1, -1, 0)
+)
+# Realizar y mostrar un procedimiento post-hoc de Scheffé
+scheffe <- contrast(medias_estimadas, method = contrastes_scheffe, level = 1 - alfa,
+                    adjust = "scheffe")
+
+cat("\nProcedimiento post-hoc de Scheffé\n")
+cat("-----\n")
+print(summary(scheffe, infer = TRUE))
+
+
+################################################################
+# SCRIPT 10.4: ANÁLISIS POST-HOC GENÉRICO (Holm y Benjamini-Hochberg)
+################################################################
+
+# Nota: Se realiza al final para agruparlo con los demás post-hoc.
+# La función requiere la variable 'alfa' definida (0.01)
+
+cat("\nProcedimiento post-hoc\n")
+cat("============\n\n")
+
+# Definir el nivel de significación
+alfa <- 0.01 # Mantener alfa en 0.01
+
+# Realizar y mostrar un procedimiento post-hoc de Holm
+ Holm <- pairwise.t.test(datos_largos[["Tiempo"]], datos_largos[["Algoritmo"]],
+                         p.adj = "holm", paired = TRUE, conf.level = 1 - alfa)
+ cat("Procedimiento post-hoc de Holm\n")
+ cat("----\n")
+ print(Holm)
+
+# Realizar y mostrar un procedimiento post-hoc de Benjamini y Hochberg
+ bh <- pairwise.t.test(datos_largos[["Tiempo"]], datos_largos[["Algoritmo"]],
+                       p.adj = "fdr", paired = TRUE, conf.level = 1 - alfa)
+ cat("\nProcedimiento post-hoc de Benjamini y Hochberg\n")
+ cat("----\n")
+ print(bh)
+
+
+################################################################
+# SCRIPT 10.7: REPRESENTACIONES GRÁFICAS DE LOS ANÁLISIS
+################################################################
+
+# Graficar las medias marginales estimadas (EMM)
+g3 <- plot(medias_estimadas, level = 1 - alfa,
+           colors = "steelblue", alpha = 0.7, horizontal = FALSE)
+
+g3 <- g3 + ggtitle(sprintf("Tamaño del efecto (%d%% IC)", round((1 - alfa) * 100)))
+g3 <- g3 + xlab("EMM del tiempos de ejecución\nrequerido para las mismas instancias")
+
+# Tema compatible con ggplot2 v3.5+
+g3 <- g3 + ggpubr::theme_pubclean()
+
+print(g3)
+
+# Graficar el procedimiento post-hoc HSD de Tukey realizado
+g4 <- plot(hsd, colors = "steelblue", alpha = 0.7)
+g4 <- g4 + xlim(c(-8, 9.2))
+g4 <- g4 + ggtitle("Post-hoc HSD de Tukey")
+g4 <- g4 + ylab("Pares de algoritmos")
+g4 <- g4 + xlab("Diferencias en tiempos de ejecución\npara las mismas instancias")
+g4 <- g4 + scale_y_discrete(labels = function(e) str_remove_all(str_replace(e, "-", "\n"), "sort"))
+g4 <- g4 + geom_vline(xintercept = 0, colour = "steelblue4", linetype = "dashed")
+g4 <- g4 + theme_pubr()
+print(g4) 
+
+# Graficar el procedimiento post-hoc de Scheffé realizado
+g5 <- plot(scheffe, colors = "steelblue", alpha = 0.7)
+g5 <- g5 + xlim(c(-8, 9.2))
+g5 <- g5 + ggtitle("Post-hoc de Scheffé")
+g5 <- g5 + ylab("Pares de algoritmos")
+g5 <- g5 + xlab("Diferencias en tiempos de ejecución\npara las mismas instancias")
+g5 <- g5 + scale_y_discrete(labels = function(e) str_remove_all(str_replace(e, "-", "\n- "), "sort"))
+g5 <- g5 + geom_vline(xintercept = 0, colour = "steelblue4", linetype = "dashed")
+g5 <- g5 + theme_pubr()
+print(g5) 
+```

@@ -1,0 +1,755 @@
+---
+title: "Codigos Lecturas"
+author: "Jorge Muñoz"
+date: "2025-12-07"
+output: html_document
+---
+
+
+Lectura 1
+
+
+```{r, include=TRUE, warning=FALSE,message=FALSE}
+# Cargar un conjunto de datos disponible en R
+datosi <- mtcars
+# Importar desde un archivo de texto plano delimitado por tabuladores
+#datos2 <- read.delim(file.choose())
+# Importar desde un archivo de valores separados por coma en formato
+# inglés.
+#datos3 <- read.csv("C:\\Inferencia\\ejemplo1-csv-eng.csv")
+# Configurar carpeta de trabajo
+
+#setwd("C:\\Inferencia")
+# Importar desde un archivo de valores separados por coma en formato
+# español.
+#datos4 <- read.csv2("ejemplo1-csv-esp.csv")
+# Mostrar las primeras 6 filas del conjunto de datos almacenado en
+# la variable 'datos1'.
+#head(datos1)
+# Mostrar las últimas 6 filas del conjunto de datos almacenado en
+# la variable 'datos1'.
+#tail(datos1)
+# Instalar un paqueta
+#install.packages("ggpubr")
+# Primera forma de importar un paquete
+library(ggpubr)
+# Segunda forma de importar un paquete
+require(ggplot2)
+# Importar un paquete. instalándolo de ser necesario
+if(!require(dplyr)) {
+    install.packages("dplyr", dependencies = TRUE)
+    require(dplyr)
+}
+# Crear un vector de strings y guardarlo en la variable 'nombre'
+nombre <- c("Alan Brito Delgado",
+            "Zacarias Labarca del Rio",
+            "Elsa Payo Maduro")
+# Crear un vector de fechas y guardarlo en la variable 'fecha_nacimiento'
+fecha_nacimiento <- as.Date(c("2008-01-25", "2006-10-04", "2008-03-27"))
+# Crear tres vectores de valores flotantes entre 1.0 y 7.0 y guardarlos
+# en 'prueba_1', 'prueba_2' y 'prueba_3'.
+prueba_1 <- c(5.5, 3.4, 4.5)
+prueba_2 <- c(3.2, 4.7, 4.1)
+prueba_3 <- c(4.8, 4.3, 5.1)
+# Construir una matriz de datos a partir de los vectores anteriores y
+# guardarlo en la variable 'datos'.
+datos <- data.frame(nombre, fecha_nacimiento,
+                    prueba_1, prueba_2, prueba_3)
+# Define el nombre del archivo de salida
+salida <- ""  # Corresponde a la consola
+
+# Guardar la matriz de datos creada en un archivo csv en el formato inglés
+#write.csv(datos, salida)
+# Escribe una línea en blanco en un archivo (en modo 'append')
+#write("", salida)
+# Guardar la matriz de datos creada en un archivo csv en el formato español,
+# sin incluir los nombres de las observaciones.
+
+#write.csv2(datos, salida, row.names = FALSE)
+
+# Leer una matriz de datos desde un archivo CSV en formato español
+#datos <- read.csv2("Ejemplo.csv")
+# Eliminar la columna 'fecha_nacimiento de la matriz de datos
+
+#datos[["fecha_nacimiento"]] <- NULL
+# Agregar la columna edad a de la matriz de datos
+#datos[["edad"]] <- c(23, 25, 23)
+# Crear una nueva observación
+#nueva <- data.frame(nombre = "Elba Calao del Río",
+                    #prueba_1 = 6.4, prueba_2 = 2.3, prueba_3 = 4.6,
+                    #edad = 24)
+# Agregar la nueva observación a de la matriz de datos
+#datos <- rbind(datos, nueva)
+# Eliminar las primeras 3 observaciones de de la matriz de datos
+#datos <- datos[-c(1:3), ]
+# Guardar de la matriz de datos en un archivo csv en español
+#write.csv2(datos, "Ejemplo_cambiado.csv", row.names = FALSE)
+
+library(dplyr)
+# Cargar dataframe iris incluido en R.
+datos <- iris
+# Seleccionar observaciones correspondientes a la especie versicolor
+versicolor <- datos |> filter(Species == "versicolor")
+# Seleccionar observaciones de la especie versicolor cuyos sépalos tengan una
+# longitud igual o superior a 6 cm.
+largas <- datos |> filter(Species == "versicolor" & Sepal.Length >= 6)
+# Seleccionar la especie y variables relativas a los pétalos
+petalos <- datos |> select(Species, starts_with("Petal"))
+# Seleccionar variables de ancho y la especie
+anchos <- datos |> select(ends_with("Width"), Species)
+# Agregar al conjunto de datos de los pétalos una nueva variable con la razón
+# entre el largo y el ancho de estos.
+petalos <- petalos |> mutate(Petal.Ratio = Petal.Length / Petal.Width)
+# Ordenar el conjunto de datos de pétalos en forma descendente según la razón
+# de los pétalos.
+petalos <- petalos |> arrange(desc(Petal.Ratio))
+# Ordenar el conjunto de datos de pétalos en forma ascendente según el largo
+# los pétalos.
+petalos <- petalos |> arrange(Petal.Length)
+library(tidyr)
+# Crear la matriz de datos
+Instancia <- 1:6
+Quicksort <- c(23.2, 22.6, 23.4, 23.3, 21.8, 23.9)
+Bubblesort <- c(31.6, 29.3, 30.7, 30.8, 29.8, 30.3)
+Radixsort <- c(30.1, 28.4, 28.7, 28.3, 29.9, 29.1)
+Mergesort <- c(25.0, 25.7, 25.7, 23.7, 25.5, 24.7)
+datos <- data.frame(Instancia, Quicksort, Bubblesort, Radixsort, Mergesort)
+# Mostrar las primeras filas de la matriz de datos
+cat("Datos originales: \n")
+cat("--------------\n")
+print(head(datos))
+cat("\n")
+# Convertir la matriz de datos a formato largo
+datos_largos <- datos |>
+    pivot_longer(c("Quicksort", "Bubblesort", "Radixsort", "Mergesort"),
+                 names_to = "Algoritmo", values_to = "Tiempo")
+# Mostrar las primeras filas de la matriz de datos largos
+cat("Datos largos: \n")
+cat("------------\n")
+print(head(datos_largos))
+cat("\n")
+# Convertir la matriz de datos largos a formato ancho
+datos_anchos <- datos_largos |>
+    pivot_wider(names_from = "Algoritmo", values_from = "Tiempo")
+# Mostrar las primeras filas de la matriz de datos largos.
+cat("Datos anchos:\n")
+cat("-----------\n")
+print(head(datos_anchos))
+cat("\n")
+
+library(dplyr)
+# Cargar conjunto de datos y filtrar pesos muy bajos o muy altos
+datos <- mtcars |> filter(wt > 2 & wt < 5)
+# Renombrar columnas
+datos <- datos |> rename(Rendimiento = mpg, Cilindrada = cyl,
+                         Desplazamiento = disp, Potencia = hp,
+                         Eje = drat, Peso = wt, Cuarto_milla = qsec,
+                         Motor = vs, Transmision = am, Cambios = gear,
+                         Carburadores = carb)
+# Dar formato categórico a las variables Motor, Transmision, Cilindrada y Cambios,
+# renombrando sus niveles.
+datos[["Motor"]] <- factor(datos[["Motor"]], levels = c(0, 1),
+                           labels = c("V", "Recto"))
+datos[["Transmision"]] <- factor(datos[["Transmision"]], levels = c(0, 1),
+                                 labels = c("Automático", "Manual"))
+datos[["Cilindrada"]] <- factor(datos[["Cilindrada"]], levels = c(4, 6, 8),
+                                labels = c("4 cilindros", "6 cilindros", "8 cilindros"),
+                                ordered = TRUE)
+datos[["Cambios"]] <- factor(datos[["Cambios"]], levels = c(3, 4, 5),
+                             labels = c("3 cambios", "4 cambios", "5 cambios"),
+                             ordered = TRUE)
+# Guarda el conjunto de datos con nuevos nombres y etiquetas
+#write.csv2(datos, "Mtcars.csv")
+
+``` 
+Lectura 2:
+
+```{r, include=TRUE}
+#install.packages("remotes")
+#remotes::install_github("haleyjeppson/ggmosaic")
+
+library(ggmosaic)
+library(ggplot2)
+
+################################################################
+#                   SCRIPT 2.1: USO DE mean() Y sapply()       #
+################################################################
+library(dplyr)
+# Cargar conjunto de datos y filtrar pesos muy bajos o muy altos
+datos <- mtcars |> filter(wt > 2 & wt < 5)
+# Renombrar columnas
+datos <- datos |> rename(Rendimiento = mpg, Cilindrada = cyl,
+                         Desplazamiento = disp, Potencia = hp,
+                         Eje = drat, Peso = wt, Cuarto_milla = qsec,
+                         Motor = vs, Transmision = am, Cambios = gear,
+                         Carburadores = carb)
+# Dar formato categórico a las variables
+datos[["Motor"]] <- factor(datos[["Motor"]], levels = c(0, 1), labels = c("V", "Recto"))
+datos[["Transmision"]] <- factor(datos[["Transmision"]], levels = c(0, 1), labels = c("Automático", "Manual"))
+datos[["Cilindrada"]] <- factor(datos[["Cilindrada"]], levels = c(4, 6, 8), labels = c("4 cilindros", "6 cilindros", "8 cilindros"), ordered = TRUE)
+datos[["Cambios"]] <- factor(datos[["Cambios"]], levels = c(3, 4, 5), labels = c("3 cambios", "4 cambios", "5 cambios"), ordered = TRUE)
+
+# Esta variable 'datos' contiene el conjunto de datos listo para el Capítulo 2.
+head(datos)
+library(dplyr)
+# Cargar conjunto de datos
+#datos <- read.csv2("Mtcars.csv", stringsAsFactors = TRUE, row.names = 1)
+# Calcular y mostrar la media para la variable Rendimiento
+media <- mean(datos[["Rendimiento"]])
+cat("Rendimiento medio:", media, "\n")
+# Calcular y mostrar la media para la variable Rendimiento omitiendo valores faltantes
+# (si existieran).
+cat("Rendimiento medio:", mean(datos[["Rendimiento"]], na.rm = TRUE), "\n")
+# Calcular y mostrar las medias de la tercera y quinta columnas usando la función sapply()
+cat("\nMedias con sapply:\n")
+cat("-------\n")
+print(sapply(datos[c(3, 5)], mean))
+# Calcular y mostrar las medias de las mismas columnas usando funciones tidyverse
+cat("\nMedias con dplyr:\n")
+cat("---\n")
+
+
+
+################################################################
+#             SCRIPT 2.2: CÁLCULO DE CUANTILES                 #
+################################################################
+# Cargar conjunto de datos
+#datos <- read.csv2("Mtcars.csv", stringsAsFactors = TRUE, row.names = 1)
+# Calcular y mostrar diferentes cuantiles de la variable Rendimiento
+cat("Cuartiles: \n")
+cat("\n")
+print(quantile(datos[["Rendimiento"]]))
+cat("\nQuintiles: \n")
+cat("\n")
+print(quantile(datos[["Rendimiento"]],
+               seq(0, 1, 0.2)))
+cat("\nDeciles: \n")
+cat("\n")
+print(quantile(datos[["Rendimiento"]],
+               seq(0, 1, 0.1)))
+cat("\nPercentiles: \n")
+cat("-----\n")
+print(quantile(datos[["Rendimiento"]],
+               seq(0, 1, 0.01)))
+
+
+################################################################
+#              SCRIPT 2.3: USO DE summarise()                  #
+################################################################
+library(dplyr)
+# Calcular varias medidas para la variable Potencia
+medidas_potencia <- datos |> summarise(Media = mean(Potencia),
+                                       Mediana = median(Potencia),
+                                       Varianza = var(Potencia),
+                                       RIQ = IQR(Potencia))
+# Calcular la media y la desviación estándar para las variables Peso y
+# Cuarto_milla.
+medidas_varias <- datos |> summarise(Media_Peso = mean(Peso),
+                                      Media_CM = median(Cuarto_milla),
+                                      DesvEst_Peso = sd(Peso),
+                                      DesvEst_CM = sd(Cuarto_milla))
+# Mostrar las medidas obtenidas
+cat("Resumen para Potencia':\n")
+cat("----\n")
+print(medidas_potencia)
+cat("\nMedia / desv. est. de las variables 'Peso' y 'Cuarto_milla':\n")
+cat("---\n")
+print(medidas_varias)
+cat("\n")
+
+
+################################################################
+#    SCRIPT 2.4: TABLA DE CONTINGENCIA PARA UNA VARIABLE       #
+################################################################
+# Cargar datos
+#datos <- read.csv2("Mtcars.csv", stringsAsFactors = TRUE, row.names = 1)
+# Crear y mostrar la tabla de contingencia para la variable Cambios
+contingencia <- table(datos[["Cambios"]])
+cat("Tabla de contingencia generada con table():\n")
+cat("--\n")
+print(contingencia)
+# Otra forma de crear la misma tabla
+contingencia <- xtabs(~Cambios, data = datos)
+cat("\nTabla de contingencia generada con xtabs():\n")
+cat("---\n")
+print(contingencia)
+# Calcular totales por fila y mostrarlos por separado
+totales <- marginSums(contingencia)
+cat("\nTotales por fila:\n")
+cat("---\n")
+print(totales)
+# Calcular totales por fila y agregarlos a la tabla
+con_totales <- addmargins(contingencia, 1)
+cat("\nTabla de contingencia con totales por fila:\n")
+cat("..\n")
+print(con_totales)
+# Convertir a tabla de proporciones
+proporciones <- prop.table(contingencia)
+proporciones <- addmargins(proporciones, 1)
+cat("\nTabla de contingencia con proporciones: \n")
+cat("----\n")
+print(proporciones)
+# Convertir a tabla de porcentajes con 2 decimales
+porcentajes <- round(prop.table(contingencia) * 100, 4)
+porcentajes <- addmargins(porcentajes)
+cat("\nTabla de contingencia con porcentajes: \n")
+cat("-----\n")
+print(porcentajes)
+
+
+################################################################
+#  SCRIPT 2.5: TABLAS DE CONTINGENCIA Y PROPORCIONES (2 VAR.)  #
+################################################################
+# Cargar datos
+#datos <- read.csv2("C:/Inferencia/Mtcars.csv", stringsAsFactors = TRUE, row.names = 1)
+# Crear una tabla de contingencia para las variables Transmision y Cambios
+contingencia <- table(datos[["Transmision"]], datos[["Cambios"]])
+cat("Tabla de contingencia generada con table():\n")
+cat("-------\n")
+print(contingencia)
+# Otra forma de crear la misma tabla
+contingencia <- xtabs(~Transmision + Cambios, data = datos)
+cat("\nTabla de contingencia generada con xtabs():\n")
+cat("--\n")
+print(contingencia)
+cat("\n")
+# Proporciones con totales por fila
+proporciones_fila <- prop.table(contingencia, margin = 1)
+proporciones_fila <- addmargins(proporciones_fila, margin = 2)
+cat("\nTabla de contingencia con proporciones totales por fila:\n")
+cat("-----\n")
+print(proporciones_fila)
+# Proporciones con totales por columna
+proporciones_columna <- prop.table(contingencia, margin = 2)
+proporciones_columna <- addmargins(proporciones_columna, margin = 1)
+cat("\nTabla de contingencia con proporciones totales por columna:\n")
+cat("------\n")
+print(proporciones_columna)
+# Proporciones con ambos totales marginales
+proporciones <- prop.table(contingencia)
+proporciones <- addmargins(proporciones)
+cat("\nTabla de contingencia con proporciones totales: \n")
+cat("---\n")
+print(proporciones)
+
+
+################################################################
+#    SCRIPT 2.6: MATRIZ DE CONFUSIÓN PARA TRES VARIABLES       #
+################################################################
+# Cargar datos
+#datos <- read.csv2("Mtcars.csv", stringsAsFactors = TRUE, row.names = 1)
+# Convertir la variable Cambios en categórica
+datos[["Cambios"]] <- factor(datos[["Cambios"]])
+# Crear una tabla de contingencia para las variables Transmision, Cambios y Motor
+contingencia <- ftable(datos[["Transmision"]], datos[["Cambios"]], datos[["Motor"]])
+# Mostrar la tabla de contingencia obtenida
+cat("\nTabla de contingencia generada con ftable():\n")
+cat("--\n")
+print(contingencia)
+cat("\n")
+# Otra forma de crear una tabla de contingencia para tres variables
+contingencia <- xtabs(~Cambios + Transmision + Motor, data = datos)
+cat("\nTabla de contingencia generada con xtabs():\n")
+cat("---\n")
+print(contingencia)
+cat("\n")
+
+
+################################################################
+#    SCRIPT 2.7: ESTADÍSTICAS DESCRIPTIVAS PARA DATOS AGRUPADOS#
+################################################################
+library(dplyr)
+# Cargar datos
+#datos <- read.csv2("Mtcars.csv", stringsAsFactors = TRUE, row.names = 1)
+#resumen <- group_by(datos, Cambios) |>
+    #summarise(count(), mean(Rendimiento), median(Rendimiento),
+              #sd(Rendimiento), IQR(Rendimiento), mean(Potencia))
+#print(resumen)
+
+
+################################################################
+#   SCRIPT 2.8: HISTOGRAMAS PARA RENDIMIENTO Y POTENCIA        #
+################################################################
+library(ggpubr)
+# Cargar datos
+#datos <- read.csv2("Mtcars.csv", stringsAsFactors = TRUE, row.names = 1)
+# Crear y mostrar un histograma para la variable Rendimiento
+g1 <- gghistogram(datos, x = "Rendimiento", bins = 10,
+                  add = "mean", xlab = "Rendimiento [Millas/galón]", ylab = "Frecuencia",
+                  color = "steelblue", fill = "steelblue", alpha = 0.7)
+print(g1)
+# Crear y mostrar un histograma para la variable Potencia
+g2 <- gghistogram(datos, x = "Potencia", bins = 10,
+                  add = "mean", xlab = "Potencia [hp]", ylab = "Frecuencia",
+                  color = "steelblue", fill = "steelblue", alpha = 0.7)
+print(g2)
+
+
+################################################################
+#    SCRIPT 2.9: GRÁFICO DE CAJA PARA LA VARIABLE POTENCIA     #
+################################################################
+library(ggpubr)
+# Cargar datos
+#datos <- read.csv2("Mtcars.csv", stringsAsFactors = TRUE, row.names = 1)
+# Crear un gráfico de caja para la variable Potencia
+g <- ggboxplot(datos[["Potencia"]], ylab = "Potencia [hp]",
+               color = "steelblue", fill = "steelblue", alpha = 0.7)
+# Cambiar la estética del gráfico según se desee
+g <- g + rremove("x.ticks") + rremove("x.text") + rremove("x.title")
+# Mostrar el gráfico de caja obtenido
+print(g)
+
+
+################################################################
+#       SCRIPT 2.10: GRÁFICO DE BARRAS PARA CAMBIOS            #
+################################################################
+library(ggpubr)
+# Cargar datos
+#datos <- read.csv2("Mtcars.csv", stringsAsFactors = TRUE, row.names = 1)
+# Crear la tabla de frecuencias para la variable Cambios y convertirla al
+# tipo data.frame.
+contingencia <- as.data.frame(xtabs(~Cambios, data = datos))
+# Crear el gráfico de barras y ajustar su estética
+g <- ggbarplot(contingencia, x = "Cambios", y = "Freq",
+               title = "Cantidad de cambios de los automóviles",
+               xlab = "Cantidad de cambios", ylab = "Frecuencia",
+               color = "Cambios", fill = "Cambios", alpha = 0.7,
+               palette = c("steelblue", "steelblue1", "slategray4"))
+g <- ggpar(g, legend = "none")
+# Mostrar el gráfico de barras obtenido
+print(g)
+
+
+################################################################
+#        SCRIPT 2.11: GRÁFICO DE TORTA PARA CAMBIOS            #
+################################################################
+library(ggpubr)
+# Cargar datos
+#datos <- read.csv2("Mtcars.csv", stringsAsFactors = TRUE, row.names = 1)
+# Crear la tabla de frecuencias y convertirla al tipo data.frame.
+contingencia <- as.data.frame(xtabs(~Cambios, data = datos))
+# Crear el gráfico de torta para estas frecuencias
+g <- ggpie(contingencia, x = "Freq", label = "Cambios",
+           title = "Cantidad de cambios de los automóviles",
+           color = "slategray4", fill = "Cambios", alpha = 0.7,
+           palette = c("steelblue", "steelblue1", "slategray3"),
+           lab.font = c(3, "plain", "white"), lab.pos = "in",
+           legend = "none")
+# Mostrar el gráfico de torta obtenido
+print(g)
+
+
+################################################################
+#  SCRIPT 2.12: GRÁFICO DE DISPERSIÓN (RENDIMIENTO V/S PESO)   #
+################################################################
+library(ggpubr)
+# Cargar datos
+#datos <- read.csv2("Mtcars.csv", stringsAsFactors = TRUE, row.names = 1)
+# Crear y mostrar un gráfico de dispersión para las variables Rendimiento y Peso
+g <- ggscatter(datos, x = "Rendimiento", y = "Peso",
+               color = "steelblue", alpha = 0.7,
+               title = "Rendimiento v/s peso",
+               xlab = "Rendimiento [millas/galón]", ylab = "Peso [1000 lb]")
+print(g)
+
+
+################################################################
+# SCRIPT 2.13: GRÁFICOS DE DISPERSIÓN (DIFERENTES ASOCIACIONES)#
+################################################################
+library(ggpubr)
+# Cargar datos
+#datos <- read.csv2("Mtcars.csv", stringsAsFactors = TRUE, row.names = 1)
+# Crear y ajustar un gráfico de dispersión para variables independientes
+g1 <- ggscatter(datos, x = "Peso", y = "Cuarto_milla", title = "Independientes",
+                xlab = "Peso [1000 lb]", ylab = "Tiempo primer cuarto de milla [s]",
+                color = "steelblue", alpha = 0.7)
+# Crear y ajustar un gráfico de dispersión para variables con asociación positiva
+g2 <- ggscatter(datos, x = "Peso", y = "Potencia", title = "Asociación positiva",
+                xlab = "Peso [1000 lb]", ylab = "Potencia [hp]",
+                color = "steelblue1", alpha = 0.7)
+# Crear y ajustar un gráfico de dispersión para variables con asociación negativa
+g3 <- ggscatter(datos, x = "Peso", y = "Rendimiento", title = "Asociación negativa",
+                xlab = "Peso [1000 lb]", ylab = "Rendimiento [millas/galón]",
+                color = "steelblue4", alpha = 0.7)
+# Reducir el tamaño de los textos, unir los gráficos y mostrar el resultado
+g1 <- ggpar(list(g1, g2, g3),
+            font.x = c(10, "plain", "black"), font.y = c(10, "plain", "black"))
+g <- ggarrange(plotlist = g1, ncol = 3, nrow = 1, common.legend = TRUE)
+print(g)
+
+
+################################################################
+#  SCRIPT 2.14: GRÁFICOS DE BARRAS (CAMBIOS Y MOTOR)           #
+################################################################
+library(ggpubr)
+# Cargar datos
+#datos <- read.csv2("Mtcars.csv", stringsAsFactors = TRUE, row.names = 1)
+# Crear tabla de contingencia para las variables Motor y Cambios con tipo data.frame.
+tabla <- xtabs(~Motor + Cambios, data = datos)
+contingencia <- as.data.frame(tabla)
+# Crear gráfico de barras apliladas (o segmentadas)
+g1 <- ggbarplot(contingencia, x = "Cambios", y = "Freq",
+                fill = "Motor", alpha = 0.7,
+                title = "Barras apiladas", ylab = "Frecuencia",
+                palette = c("steelblue", "steelblue1", "slategray4"))
+# Crear gráfico de barras agrupadas
+g2 <- ggbarplot(contingencia, x = "Cambios", y = "Freq", position = position_dodge2(),
+                title = "Barras agrupadas", ylab = "Frecuencia",
+                fill = "Motor", alpha = 0.7,
+                palette = c("steelblue", "steelblue1", "slategray4"))
+# Crear gráfico de barras apiladas estandarizadas
+g3 <- ggbarplot(contingencia, x = "Cambios", y = "Freq", position = position_fill(),
+                title = "Barras estandarizadas", ylab = "Frecuencia",
+                fill = "Motor", alpha = 0.7,
+                palette = c("steelblue", "steelblue1", "slategray4"))
+# Crear una figura que contenga los tres gráficos
+g <- ggarrange(g1, g2, g3, nrow = 1, common.legend = TRUE)
+# Agregar un título común en negrita y con fuente de 24 puntos
+titulo <- text_grob("Tipo de motor por cantidad de cambios", size = 24)
+g <- annotate_figure(g, top = titulo)
+# Mostrar la figura obtenida
+print(g)
+
+
+################################################################
+#       SCRIPT 2.15: GRÁFICO DE MOSAICO (CAMBIOS Y MOTOR)      #
+################################################################
+
+
+# Cargar datos
+#datos <- read.csv2("Mtcars.csv", stringsAsFactors = TRUE, row.names = 1)
+# Crear una tabla de contingencia para las variables Cambios y Motor con tipo data.frame
+tabla <- xtabs(~Cambios + Motor, data = datos)
+contingencia <- as.data.frame(tabla)
+# Crear un gráfico de mosaico y ajustar la estética
+g <- ggplot(data = contingencia)
+g <- g + geom_mosaic(aes(weight = Freq, x = product(Cambios), fill = Motor))
+g <- g + labs(x = "Cambios", y = "Motor", title = "Tipo de motor por cantidad de cambios")
+g <- g + scale_fill_manual(values = c("steelblue", "steelblue4"))
+# Mostrar el gráfico obtenido
+print(g)
+
+
+################################################################
+#  SCRIPT 2.16: GRÁFICO DE CAJAS POR GRUPO (RENDIMIENTO V/S CAMBIOS) #
+################################################################
+library(ggpubr)
+# Cargar datos
+#datos <- read.csv2("Mtcars.csv", stringsAsFactors = TRUE, row.names = 1)
+# Crear y mostrar un gráfico de cajas por grupo
+g <- ggboxplot(datos, x = "Cambios", y = "Rendimiento",
+               title = "Rendimiento por cantidad de cambios",
+               xlab = "Cambios", ylab = "Rendimiento [millas/galón]",
+               fill = "Cambios", alpha = 0.7, legend = "none",
+               palette = c("steelblue", "steelblue1", "slategray2"))
+print(g)
+
+
+################################################################
+#      SCRIPT 2.17: GRÁFICO DE TIRAS (RENDIMIENTO V/S CAMBIOS) #
+################################################################
+library(ggpubr)
+# Cargar datos
+#datos <- read.csv2("Mtcars.csv", stringsAsFactors = TRUE, row.names = 1)
+# Crear y mostrar un gráfico de tiras
+g <- ggstripchart(datos, x = "Cambios", y = "Rendimiento",
+                  title = "Rendimiento por cantidad de cambios",
+                  xlab = "Cambios", ylab = "Rendimiento [millas/galón]", legend = "none",
+                  color = "Cambios", palette = c("steelblue", "steelblue1", "slategray3"))
+print(g)
+```
+
+Lectura 4: 
+
+```{r, include=TRUE, message=FALSE, warning=FALSE}
+
+################################################################
+#           SCRIPT 4.1: REPRESENTACIÓN GRÁFICA DE LA MEDIA MÓVIL  
+################################################################
+
+library(ggpubr)
+
+# Establecer la semilla para generar los mismos números aleatorios cada vez que
+# se ejecute el script.
+set.seed(9373)
+
+# Generar aleatoriamente una población de tamaño 1.000 (en este caso, siguiendo
+# una distribución normal).
+poblacion <- rnorm(n = 1000, mean = 4.32, sd = 0.98)
+
+# Calcular la media de la población
+media_poblacion <- mean(poblacion)
+cat("Media de la población:", media_poblacion, "\n")
+
+# Tomar una muestra de tamaño 220
+tamano_muestra <- 220
+muestra <- sample(poblacion, tamano_muestra)
+
+# Calcular las medias acumuladas (es decir, con muestras de 1, 2, 3, ... elementos)
+n <- seq(along = muestra)
+media <- cumsum(muestra) / n
+
+# Crear una matriz de datos con los tamaños y las medias muestrales obtenidas
+datos <- data.frame(n, media)
+
+# Graficar las medias muestrales
+g <- ggline(data = datos, x = "n", y = "media", title = "Media móvil",
+            xlab = "Tamaño de la muestra considerada", ylab = "Media muestral",
+            plot_type = "l", color = "steelblue", alpha = 0.7)
+
+# Añadir al gráfico una recta con la media de la población
+g <- g + annotate("segment", x = 0, y = media_poblacion,
+                  xend = tamano_muestra, yend = media_poblacion,
+                  colour = "steelblue2", alpha = 0.7,
+                  linewidth = 1, linetype = "dashed")
+
+# Mostrar el gráfico generado
+print(g)
+
+
+################################################################
+#          SCRIPT 4.2: DISTRIBUCIÓN MUESTRAL DE LA MEDIA         
+################################################################
+
+library(ggpubr)
+
+# Fijar la semilla para generar los mismos números pseudoaleatorios cada vez
+set.seed(9373)
+
+# Generar aleatoriamente una población de tamaño 1.500, suponiendo que sigue
+# una distribución normal) con media 4,32 y desviación estándar 0,98.
+poblacion <- rnorm(n = 1500, mean = 4.32, sd = 0.98)
+
+# Calcular y mostrar la media de la población
+media_poblacion <- mean(poblacion)
+cat("Media de la población:", media_poblacion, "\n")
+
+# Tomar 1.000 muestras de tamaño 100. Quedan almacenadas como una matriz donde cada
+# columna es una muestra.
+tamano_muestra <- 100
+repeticiones <- 1000
+muestras <- replicate(repeticiones, sample(poblacion, tamano_muestra))
+
+# Calcular medias muestrales y almacenar los resultados con tipo data.frame
+medias <- colMeans(muestras)
+medias <- as.data.frame(medias)
+
+# Construir un histograma de las medias muestrales, marcando la media de los datos
+g <- gghistogram(data = medias, x = "medias", bins = 20,
+                 title = "Distribución de la media muestral",
+                 xlab = "Media", ylab = "Frecuencia",
+                 color = "steelblue", fill = "steelblue", alpha = 0.7,
+                 add = "mean", add.params =
+                     list(color = "steelblue4", linetype = "dashed"))
+
+# Mostrar el gráfico obtenido
+print(g)
+
+
+################################################################
+#       SCRIPT 4.3: CÁLCULO DEL VALOR P (PRUEBA DE UNA COLA)     
+################################################################
+
+library(ggpubr)
+
+# Generar una muestra donde la media cumpla con la hipótesis nula
+set.seed(872)
+mu_pob_anterior <- 530
+mu_muestra_nueva <- 527.9
+desv_est <- 48
+n <- 1600
+error_est <- desv_est / sqrt(n)
+
+x <- seq(mu_pob_anterior - 5.2 * error_est, mu_pob_anterior + 5.2 * error_est, 0.01)
+y <- dnorm(x, mean = mu_pob_anterior, sd = error_est)
+muestra <- data.frame(x, y)
+
+# Graficar la muestra
+g <- ggplot(data = muestra, aes(x))
+g <- g + stat_function(fun = dnorm, args =
+                           list(mean = mu_pob_anterior, sd = error_est),
+                       colour = "steelblue", alpha = 0.7, linewidth = 1)
+g <- g + ylab("")
+g <- g + scale_y_continuous(breaks = NULL)
+g <- g + scale_x_continuous(name = "Tiempo de procesamiento [ms]")
+g <- g + theme_pubr()
+
+# Colorear el área igual o menor que la media observada
+g <- g + geom_area(data = subset(muestra, x < mu_muestra_nueva), aes(y = y),
+                   colour = "steelblue", fill = "steelblue", alpha = 0.7)
+
+# Agregar una línea vertical para el valor nulo
+g <- g + geom_vline(aes(xintercept = mu_pob_anterior),
+                    color = "skyblue1", alpha = 0.7, linetype = 1)
+
+# Mostrar el gráfico obtenido
+print(g)
+
+# Calcular el valor Z para la muestra
+Z <- (mu_muestra_nueva - mu_pob_anterior) / error_est
+
+# Calcular y mostrar el valor p
+p_1 <- pnorm(Z, lower.tail = TRUE)
+cat("Valor p (cola izquierda, Z): ", p_1, "\n")
+
+# También se puede calcular el valor p directamente a partir de la distribución muestral
+# definida por el valor nulo y el error estándar.
+p_2 <- pnorm(mu_muestra_nueva, mean = mu_pob_anterior, sd = error_est)
+cat("Valor p (cola izquierda, distribución muestral): ", p_2, "\n")
+
+
+################################################################
+#       SCRIPT 4.4: CÁLCULO DEL VALOR P (PRUEBA DE DOS COLAS)    
+################################################################
+
+library(ggpubr)
+
+# Generar una muestra donde la media cumpla con la hipótesis nula
+set.seed(208)
+mu_pob_anterior <- 530
+mu_muestra_nueva <- 527.9
+desv_est <- 48
+n <- 1600
+error_est <- desv_est / sqrt(n)
+
+x <- seq(mu_pob_anterior - 5.2 * error_est, mu_pob_anterior + 5.2 * error_est, 0.01)
+y <- dnorm(x, mean = mu_pob_anterior, sd = error_est)
+muestra <- data.frame(x, y)
+
+# Graficar la muestra
+g <- ggplot(data = muestra, aes(x))
+g <- g + stat_function(fun = dnorm, args =
+                           list(mean = mu_pob_anterior, sd = error_est),
+                       colour = "steelblue", alpha = 0.7, linewidth = 1)
+g <- g + ylab("")
+g <- g + scale_y_continuous(breaks = NULL)
+g <- g + scale_x_continuous(name = "Tiempo de procesamiento [ms]")
+g <- g + theme_pubr()
+
+# Calcular el área bajo la cola inferior
+area_inferior <- pnorm(mu_muestra_nueva, mean = mu_pob_anterior, sd = error_est)
+
+# Colorear el área igual o menor que la media observada
+g <- g + geom_area(data = subset(muestra, x <= mu_muestra_nueva), aes(y = y),
+                   colour = "steelblue", fill = "steelblue", alpha = 0.7)
+
+# Calcular el punto de corte simétrico en la cola superior
+corte_x <- qnorm(1 - area_inferior, mean = mu_pob_anterior, sd = error_est)
+
+# Colorear igual área en la otra cola
+g <- g + geom_area(data = subset(muestra, x >= corte_x), aes(y = y),
+                   colour = "steelblue", fill = "steelblue", alpha = 0.7)
+
+# Agregar una linea vertical para el valor nulo
+g <- g + geom_vline(aes(xintercept = mu_pob_anterior), color = "skyblue1")
+
+# Mostrar el gráfico conseguido
+print(g)
+
+# Calcular el valor Z para la muestra
+Z <- (mu_muestra_nueva - mu_pob_anterior) / error_est
+
+# Calcular y mostrar el valor p (recordando ahora que la hipótesis es bilateral)
+p <- 2 * pnorm(Z, lower.tail = TRUE)
+cat("Valor p (bilateral): ", p)
+```

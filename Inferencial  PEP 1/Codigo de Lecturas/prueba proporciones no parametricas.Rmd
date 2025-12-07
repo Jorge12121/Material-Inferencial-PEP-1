@@ -1,0 +1,348 @@
+---
+title: "prueba proporciones no parametricas"
+author: "Jorge Muñoz"
+date: "2025-12-07"
+output: html_document
+---
+
+```{r, include=TRUE}
+################################################################
+#              SCRIPT 8.1: PRUEBA EXACTA DE FISHER             #
+################################################################
+
+# Construir los datos y la tabla de contingencia
+Vacuna <- c(rep("Argh", 6), rep("Grrr", 11))
+Resultado <- c(rep("Humano", 12), rep("Vampiro", 5))
+Resultado <- factor(Resultado, levels = c("Vampiro", "Humano"))
+datos <- data.frame(Resultado, Vacuna)
+tabla <- xtabs(~., datos)
+print(tabla)
+
+# Aplicar la prueba exacta de Fisher a la tabla de contingencia
+fisher_1 <- fisher.test(tabla)
+cat("\n")
+cat("Prueba exacta de Fisher usando la tabla de contingencia\n")
+cat("-----\n")
+print(fisher_1)
+
+# Aplicar la prueba exacta de Fisher directamente a las muestras
+fisher_2 <- fisher.test(Vacuna, Resultado)
+cat("Prueba exacta de Fisher usando las muestras: \n")
+cat("-\n")
+print(fisher_2)
+
+
+################################################################
+#          SCRIPT 8.2: PRUEBA CHI-CUADRADO DE HOMOGENEIDAD     #
+################################################################
+
+# Crear la tabla de contingencia
+programadores <- c(42, 56, 51, 27, 24)
+programadoras <- c(25, 24, 27, 15, 9)
+tabla <- as.table(rbind(programadores, programadoras))
+dimnames(tabla) <- list(sexo = c("programadores", "programadoras"),
+                         lenguajes = c("C", "Java", "Python", "Ruby", "Otro"))
+
+# Definir condiciones y el nivel de significación
+minima_frec_esperada <- 5
+alfa <- 0.05
+
+# Obtener las frecuencias esperadas
+sumas_filas <- apply(tabla, 1, sum)
+sumas_columnas <- apply(tabla, 2, sum)
+suma_total <- sum(tabla)
+esperadas <- outer(sumas_filas, sumas_columnas, "*") / suma_total
+esperadas <- round(esperadas, 1)
+dimnames(esperadas) <- list(sexo = c("programadores", "programadoras"),
+                             lenguajes = c("C", "Java", "Python", "Ruby", "Otro"))
+
+# Realizar prueba chi-cuadrado de homogeneidad
+prueba <- chisq.test(tabla)
+
+# Mostrar la tabla
+cat("Tabla de contingencia:\n")
+cat("\n")
+print(tabla)
+cat("\n")
+
+# Mostrar las frecuencias esperadas y si hay grupos que no cumplen con el mínimo
+cat("\nFrecuencias esperadas: \n")
+cat("---\n")
+print(esperadas)
+cat("\n")
+cat("Frecuencias esperadas bajo", minima_frec_esperada)
+cat(":", sum(esperadas < minima_frec_esperada), "\n")
+
+# Mostrar el resultado de la prueba
+cat("\nResultado de la prueba chi-cuadrado de homogeneidad:\n")
+cat("\n")
+print(prueba)
+
+
+################################################################
+#       SCRIPT 8.3: PRUEBA CHI-CUADRADO DE BONDAD DE AJUSTE    #
+################################################################
+
+# Crear la tabla de contingencia
+nomina <- c(236, 78, 204, 76, 66)
+muestra <- c(17, 9, 14, 10, 5)
+tabla <- as.table(rbind(nomina, muestra))
+dimnames(tabla) <- list(grupo = c("Nómina", "Muestra"),
+                         lenguajes = c("C", "Java", "Python", "Ruby", "Otro"))
+
+# Definir condiciones y el nivel de significación
+minima_frec_esperada <- 5
+alfa <- 0.05
+
+# Realizar prueba chi-cuadrado de bondad de ajuste
+prueba <- chisq.test(tabla)
+
+# Mostrar la tabla
+cat("Tabla de contingencia:\n")
+cat("--\n")
+print(tabla)
+cat("\n")
+
+# Mostrar las frecuencias esperadas
+cat("\nFrecuencias esperadas: \n")
+cat("--\n")
+esperadas <- round(prueba[["expected"]], 1)
+print(esperadas)
+
+cat("Frecuencias esperadas bajo", minima_frec_esperada)
+cat(":", sum(esperadas < minima_frec_esperada), "\n")
+
+# Mostrar el resultado de la prueba
+cat("\nResultado de la prueba chi-cuadrado de bondad de ajuste:\n")
+cat("-----\n")
+print(prueba)
+
+
+################################################################
+#      SCRIPT 8.4: PRUEBA CHI-CUADRADO DE INDEPENDENCIA        #
+################################################################
+
+# Crear la tabla de contingencia
+comestible <- c(404, 1948, 32, 228, 1596)
+venenoso <- c(48, 1708, 0, 600, 1556)
+tabla <- as.table(rbind(comestible, venenoso))
+dimnames(tabla) <- list(tipo = c("comestible", "venenoso"),
+                         sombrero = c("campana", "convexo", "hundido", "nudoso", "plano"))
+
+# Definir condiciones y el nivel de significación
+minima_frec_esperada <- 5
+alfa <- 0.05
+
+# Realizar prueba chi-cuadrado de independencia
+prueba <- chisq.test(tabla)
+
+# Mostrar la tabla
+cat("Tabla de contingencia: \n")
+cat("--\n")
+print(tabla)
+cat("\n")
+
+cat("\n\nPrueba ómnibus: \n")
+cat("====\n")
+
+# Mostrar las frecuencias esperadas
+cat("\nFrecuencias esperadas: \n")
+cat("---\n")
+esperadas <- round(prueba[["expected"]], 1)
+print(esperadas)
+
+cat("Frecuencias esperadas bajo", minima_frec_esperada)
+cat(":", sum(esperadas < minima_frec_esperada), "\n")
+
+# Mostrar el resultado de la prueba
+cat("\nResultado de la prueba chi-cuadrado de independencia:\n")
+cat("\n")
+print(prueba)
+
+
+################################################################
+# SCRIPT 8.5: PROCEDIMIENTO POST-HOC PARA LA PRUEBA CHI-CUADRADO
+################################################################
+
+# Nota: Este script debe ejecutarse después del SCRIPT 8.4 para que las variables 'tabla', 'alfa' y 'minima_frec_esperada' existan
+# Asegúrate de ejecutar el SCRIPT 8.4 antes de este bloque si los estás corriendo por separado.
+
+if (prueba[["p.value"]] < alfa) {
+    cat("Procedimiento post-hoc:\n")
+    cat("======================\n\n")
+
+    # Obtener los pares de formas de sombrero
+    pares <- t(combn(colnames(tabla), 2))
+    N <- nrow(pares)
+
+    # Obtener las pruebas post-hoc (inicialmente como Chi-cuadrado)
+    pruebas_ph <- sapply(1:N, function(i) chisq.test(tabla[, pares[i, ]]), simplify = FALSE)
+
+    # Identificar las pruebas chi-cuadrado post-hoc que no cumplen condiciones (frecuencia esperada mínima)
+    i_no <- which(sapply(1:N, function(i) min(pruebas_ph[[i]][["expected"]]) < minima_frec_esperada))
+
+    # Cambiar la prueba post-hoc cuando no se cumplen las condiciones a Exacta de Fisher
+    if (length(i_no) > 0) {
+        pruebas_ph[i_no] <- sapply(i_no, function(i) fisher.test(tabla[, pares[i, ]]),
+                                   simplify = FALSE)
+    }
+
+    # Preparar tabla con el resumen de resultados
+    nombre_ph <- rep("Chi cuadrado", N)
+    nombre_ph[i_no] <- "Ex. de Fisher"
+    
+    # Obtener estadísticos (Chi-sq o Odds Ratio para Fisher)
+    estadistico <- sapply(1:N, function(i) pruebas_ph[[i]][["statistic"]])
+    # Los estadísticos de Fisher son "estimate" (Odds Ratio), no "statistic"
+    estadistico[i_no] <- sapply(i_no, function(i) pruebas_ph[[i]][["estimate"]])
+    estadistico <- round(unlist(estadistico), 2)
+    
+    # Obtener valores p originales y ajustados
+    p_val <- sapply(1:N, function(i) pruebas_ph[[i]][["p.value"]])
+    p_adj_h <- p.adjust(p_val, method = "holm")
+    p_adj_by <- p.adjust(p_val, method = "BY")
+    
+    # Añadir asteriscos de significación
+    sig_h <- ifelse(p_adj_h < alfa, "*", "")
+    sig_by <- ifelse(p_adj_by < alfa, "*", "")
+    
+    # Construir el data.frame final
+    resultados <- data.frame(pares[, 1], pares[, 2], nombre_ph, estadistico)
+    resultados <- cbind(resultados, p_val, p_adj_h, sig_h, p_adj_by, sig_by)
+    colnames(resultados) <- c("Forma 1", "Forma 2", "Prueba", "Estadístico",
+                              "Valor p", "P.adj_Holm", "", "P.adj_BY", "")
+    
+    # Mostrar resumen de resultados
+    print(resultados, digits = 2)
+}
+
+
+################################################################
+#              SCRIPT 8.6: PRUEBA DE McNEMAR                   #
+################################################################
+
+# Construir la tabla de contingencia
+estudiante <- seq(1:25)
+modelo_1 <- c(rep("Correcto", 16), rep("Incorrecto", 9))
+modelo_2 <- c(rep("Correcto", 9), rep("Incorrecto", 11), rep("Correcto", 5)) # Esta línea es compleja en el texto. Se infiere de la Tabla 8.10 (Correcto/Correcto=9, Incorrecto/Correcto=7, Correcto/Incorrecto=5, Incorrecto/Incorrecto=4)
+# Los valores proporcionados en las líneas 1464 y 1465 del PDF son inconsistentes con la tabla 8.10.
+# Usaremos la tabla 8.10 para construir el vector modelo_2, asumiendo que modelo_1 ya es correcto.
+# Modelo 1 (Correcto=16, Incorrecto=9).
+# Modelo 2 (Correcto=14, Incorrecto=11).
+
+# Reconstruyendo los datos del PDF con la información de la tabla 8.10 (b=5, c=7):
+modelo_1 <- c(rep("Correcto", 9), rep("Incorrecto", 7), rep("Correcto", 5), rep("Incorrecto", 4))
+modelo_2 <- c(rep("Correcto", 9), rep("Correcto", 7), rep("Incorrecto", 5), rep("Incorrecto", 4))
+# Esto no cuadra con los totales marginales del texto (Modelo 1: 16 C, 9 I; Modelo 2: 14 C, 11 I).
+# Usaremos la reconstrucción del texto (línea 1464 y 1465) que define las celdas b y c (b=5, c=7).
+# Celdas: (C,C)=9, (I,C)=7, (C,I)=5, (I,I)=4
+modelo_1 <- c(rep("Correcto", 9), rep("Correcto", 5), rep("Incorrecto", 7), rep("Incorrecto", 4)) # Reordenado: (C,C)=9, (C,I)=5, (I,C)=7, (I,I)=4
+modelo_2 <- c(rep("Correcto", 9), rep("Incorrecto", 5), rep("Correcto", 7), rep("Incorrecto", 4))
+tabla <- table(modelo_2, modelo_1)
+# Los datos de entrada del libro son:
+# modelo_1: C(16), I(9)
+# modelo_2: C(14), I(11)
+# Las celdas cambiantes son b (C->I) = 5, c (I->C) = 7.
+# Intentaremos con los vectores de la línea 1464-1465, que están incompletos:
+# modelo_1 <- c(rep("Correcto", 16), rep("Incorrecto", 9)) # Total 25
+# modelo_2 <- c(rep("Correcto", 9), rep("Incorrecto", 11), rep("Correcto", 5)) # Total 25, pero no respeta las celdas
+
+# Usaremos la reconstrucción que coincide con las celdas (b=5, c=7):
+modelo_1_reco <- c(rep("Correcto", 14), rep("Incorrecto", 11))
+modelo_2_reco <- c(rep("Correcto", 16), rep("Incorrecto", 9))
+tabla_reco <- matrix(c(9, 7, 5, 4), nrow = 2, byrow = TRUE, dimnames = list(Modelo2 = c("Correcto", "Incorrecto"), Modelo1 = c("Correcto", "Incorrecto")))
+
+
+# Aplicar la prueba con la tabla reconstruida
+cat("Tabla de contingencia:\n")
+cat("\n")
+print(tabla_reco)
+cat("\n")
+
+# Aplicar la prueba de McNemar a la tabla y mostrarla (sin corrección)
+prueba_1 <- mcnemar.test(tabla_reco, correct = FALSE)
+cat("\nPrueba de McNemar usando la tabla de contingencia:\n")
+cat("\n")
+print(prueba_1)
+
+# Aplicar la prueba de McNemar directamente a los vectores originales (para ser fiel a las lineas 1464-1465, aunque el resultado de la tabla es el que se desea)
+# Usaremos los vectores que generan la tabla b=5, c=7:
+prueba_2 <- mcnemar.test(modelo_2, modelo_1, correct = FALSE)
+cat("Prueba de McNemar usando directamente las muestras: \n")
+cat("-\n")
+print(prueba_2)
+
+
+################################################################
+#             SCRIPT 8.7: PRUEBA Q DE COCHRAN                  #
+################################################################
+
+library(dplyr)
+library(rcompanion)
+library(RVAideMemoire)
+library(tidyr)
+
+# Crear la matriz de datos (formato ancho)
+instancia <- 1:15
+annealing <- c(0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0)
+hormigas <- c(0, 0, 1, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 0, 1)
+genetico <- c(1, 0, 1, 1, 1, 1, 0, 1, 0, 1, 0, 0, 0, 1, 1)
+datos_anchos <- data.frame(instancia, annealing, hormigas, genetico)
+
+# Llevar la matriz de datos a formato largo
+datos_largos <- datos_anchos |>
+    pivot_longer(c("annealing", "hormigas", "genetico"),
+                 names_to = "metaheuristica", values_to = "resultado") |>
+    mutate(instancia = as.factor(instancia), metaheuristica = as.factor(metaheuristica)) # Uso de mutate para convertir a factores
+
+# Definir condiciones y el nivel de significación
+minimo_tamaño_muestra <- 24
+alfa <- 0.05
+
+# Calcular el tamaño de la muestra y realizar la prueba Q de Cochran
+N <- nrow(datos_anchos[, -1]) * ncol(datos_anchos[, -1]) # (15 bloques * 3 tratamientos = 45)
+prueba_qc <- cochran.qtest(resultado ~ metaheuristica | instancia,
+                           data = datos_largos, alpha = alfa)
+
+# Mostrar el tamaño de la muestra y el resultado de la prueba global
+cat("Prueba ómnibus: \n")
+cat("===========\n")
+cat("Tamaño de la muestra:", N, "")
+cat(ifelse(N > minimo_tamaño_muestra, ">", "<= "))
+cat(minimo_tamaño_muestra, "\n")
+cat("\nResultado de la prueba Q de Cochran:\n")
+cat("-------\n")
+print(prueba_qc)
+
+
+################################################################
+# SCRIPT 8.8: PROCEDIMIENTO POST-HOC PARA LA PRUEBA Q DE COCHRAN
+################################################################
+
+# Nota: Este script debe ejecutarse después del SCRIPT 8.7.
+
+# Realizar procedimiento post-hoc si corresponde
+if (prueba_qc[["p.value"]] < alfa) {
+    cat("\n\nProcedimiento post-hoc:\n")
+    cat("============\n")
+
+    # Aplicar procedimiento post-hoc con corrección de Holm
+    post_hoc_1 <- pairwiseMcnemar(resultado ~ metaheuristica | instancia,
+                                  data = datos_largos,
+                                  test = "mcnemar", correct = FALSE, method = "holm")
+
+    # Aplicar procedimiento post-hoc con corrección de Benjamini y Yekutieli
+    post_hoc_2 <- pairwiseMcnemar(resultado ~ metaheuristica | instancia,
+                                  data = datos_largos,
+                                  test = "mcnemar", correct = FALSE, method = "BY")
+
+    # Mostrar el resultado de los procedimientos post-hoc realizados
+    cat("\nProcedimiento post-hoc con ajuste de Holm\n")
+    cat("---\n")
+    print(post_hoc_1)
+
+    cat("Procedimiento post-hoc con ajuste Benjamini y Yekutieli\n")
+    cat("----\n")
+    print(post_hoc_2)
+}
+``` 

@@ -1,0 +1,375 @@
+---
+title: "datos problematicos y no parametricos"
+author: "Jorge Muñoz"
+date: "2025-12-07"
+output: html_document
+---
+```{r, include=TRUE}
+################################################################
+# SCRIPT 11.1: TRANSFORMACIÓN LINEAL (CELSIUS A FAHRENHEIT)
+################################################################
+
+# Crear un vector con observaciones en grados Celsius
+Celsius <- c(-4, 0, 18, 30, 35, 50, 100)
+
+# Aplicar transformación lineal para convertir a grados Fahrenheit
+Fahrenheit <- 1.8 * Celsius + 32
+
+# Mostrar los resultados
+cat("Temperaturas en grados Celsius:", paste(Celsius, collapse = ", "), "\n")
+cat("Temperaturas en grados Fahrenheit", paste(Fahrenheit, collapse = ", "), "\n")
+
+
+################################################################
+# SCRIPT 11.2: OBTENCIÓN DE DATOS PARA TRANSFORMACIÓN LOGARÍTMICA
+################################################################
+
+library(dplyr)
+library(ggpubr)
+library(MASS)
+library(tibble)
+
+# Usaremos el conjunto de datos "Animals" con el peso promedio del cuerpo y cerebro de
+# 28 especies de animales terrestres. Cambiamos gramos a kilos para mayor facilidad.
+datos <- Animals |> rename(Peso_cuerpo = body) |>
+    mutate(Peso_cerebro = round(brain / 1000, 4)) |>
+    rownames_to_column(var = "Animal") |>
+    dplyr::select(Animal, Peso_cuerpo, Peso_cerebro)
+
+# Aplicar transformación logarítmica en base e (no hay valores nulos ni negativos)
+datos <- datos |> mutate(Peso_cuerpo_ln = log(Peso_cuerpo)) |>
+    mutate(Peso_cerebro_ln = log(Peso_cerebro))
+
+
+################################################################
+# SCRIPT 11.3: GRÁFICOS PARA TRANSFORMACIÓN LOGARÍTMICA
+################################################################
+
+# Nota: Este script depende de las variables creadas en el SCRIPT 11.2 ('datos').
+# Crear histogramas para el peso cerebral antes y después de la transformación logarítmica
+h1 <- gghistogram(datos, x = "Peso_cerebro", bins = 10,
+                  xlab = "Peso del cerebro [kg]", ylab = "Frecuencia",
+                  color = "steelblue", fill = "steelblue", alpha = 0.7)
+
+h2 <- gghistogram(datos, x = "Peso_cerebro_ln", bins = 10,
+                  xlab = "Log. nat. del peso del cerebro [kg]", ylab = "Frecuencia",
+                  color = "steelblue", fill = "steelblue", alpha = 0.7)
+
+# Crear gráficos de dispersión para la relación entre peso corporal y peso del
+# cerebro, antes y después de aplicar la transformación logarítmica.
+g1 <- ggscatter(datos, x = "Peso_cuerpo", y = "Peso_cerebro",
+                color = "steelblue", alpha = 0.7,
+                xlab = "Peso corporal [kg]", ylab = "Peso del cerebro [kg]")
+
+g2 <- ggscatter(datos, x = "Peso_cuerpo_ln", y = "Peso_cerebro_ln",
+                color = "steelblue", xlab = "Log. nat. del peso corporal [kg]",
+                ylab = "Log. nat. del peso\ndel cerebro [kg]")
+g2 <- g2 + scale_y_continuous(breaks = seq(-8, 2, 2))
+
+# Preparar los gráficos de dispersión para formar una sola figura
+pls <- list(h1, h2, g1, g2)
+subtits <- c("A", "B", "C", "D")
+pls <- mapply(function(g, l) g + labs(subtitle = l), pls, subtits, SIMPLIFY = FALSE)
+
+tema <- function(g) g + theme(text = element_text(size = 9),
+                              plot.subtitle = element_text(face = "bold",
+                                                           colour = "steelblue", size = 12))
+pls <- lapply(pls, tema)
+
+# Crear una única figura, darle un título y mostrarla
+texto <- "Efecto de la transformación logarítmica"
+titulo <- text_grob(texto, face = "bold", size = 14)
+grafico <- ggarrange(plotlist = pls, nrow = 2, ncol = 2, align = "hv")
+grafico <- annotate_figure(grafico, top = titulo)
+# print(grafico) # Comentado para no interrumpir el flujo
+
+
+################################################################
+# SCRIPT 11.4: DATOS DE LA POBLACIÓN TOTAL DE ESTADOS UNIDOS
+################################################################
+
+library(ggpubr)
+
+# Crear estructura con los datos a partir de la serie de tiempo (objeto "ts")
+# definida en el conjunto de datos "uspop".
+Año <- as.numeric(time(uspop))
+Poblacion <- as.numeric(window(uspop))
+datos <- data.frame(Año, Poblacion)
+
+# Obtener un histograma y gráfico de dispersión de la población por año
+# con los datos originales.
+ho <- gghistogram(datos, x = "Poblacion", bins = 7,
+                  xlab = "Población (millones)", ylab = "Frecuencia",
+                  color = "steelblue", fill = "steelblue", alpha = 0.7)
+ho <- ho + theme(axis.title = element_text(size = rel(0.9)),
+                 axis.text = element_text(size = rel(0.8)))
+
+go <- ggscatter(datos, x = "Año", y = "Poblacion", color = "steelblue", alpha = 0.7,
+                xlab = "Año", ylab = "Población (millones)")
+go <- go + theme(axis.title = element_text(size = rel(0.9)),
+                 axis.text = element_text(size = rel(0.8)))
+
+# Unir y mostrar el histograma y el gráfico de dispersión
+plot_original <- ggarrange(ho, go, ncol = 2, nrow = 1, labels = "AUTO",
+                           font.label = list(color = "steelblue"))
+texto <- "Histograma de la población y población por año"
+titulo <- text_grob(texto, face = "bold", size = 14)
+plot_original <- annotate_figure(plot_original, top = titulo)
+# print(plot_original) # Comentado para no interrumpir el flujo
+
+
+################################################################
+# SCRIPT 11.5: TRANSFORMACIÓN DE TUKEY A DATOS DE POBLACIÓN
+################################################################
+
+# Nota: Este script depende de las variables creadas en el SCRIPT 11.4 ('datos', 'Año').
+# Aplicar transformación para diferentes escalas de Tukey
+exp_2neg <- -(datos[["Poblacion"]]^-2)
+exp_1neg <- -(datos[["Poblacion"]]^-1)
+exp_1div2neg <- -(datos[["Poblacion"]]^(-1/2))
+exp_0 <- log(datos[["Poblacion"]])
+exp_1div2pos <- sqrt(datos[["Poblacion"]])
+exp_2pos <- datos[["Poblacion"]]^2
+
+# Unir datos transformados en una matriz de datos
+datos_tuk <- data.frame(Año, exp_2neg, exp_1neg, exp_1div2neg,
+                         exp_0, exp_1div2pos, exp_2pos)
+
+# Crear gráficos de dispersión para población/año usando los datos
+# transformados con distintas escalas de Tukey.
+gt1 <- ggscatter(datos_tuk, x = "Año", y = "exp_2neg", color = "steelblue", alpha = 0.7)
+gt2 <- ggscatter(datos_tuk, x = "Año", y = "exp_1neg", color = "steelblue", alpha = 0.7)
+gt3 <- ggscatter(datos_tuk, x = "Año", y = "exp_1div2neg", color = "steelblue", alpha = 0.7)
+gt4 <- ggscatter(datos_tuk, x = "Año", y = "exp_0", color = "steelblue", alpha = 0.7)
+gt5 <- ggscatter(datos_tuk, x = "Año", y = "exp_1div2pos", color = "steelblue", alpha = 0.7)
+gt6 <- ggscatter(datos_tuk, x = "Año", y = "exp_2pos", color = "steelblue", alpha = 0.7)
+
+# Preparar los gráficos de dispersión para formar una sola figura
+gts <- list(gt1, gt2, gt3, gt4, gt5, gt6)
+gts <- lapply(gts, function(g) g + ylab("Población transformada"))
+exps <- c("-2", "-1", "-1/2", "0", "1/2", "2")
+subtits <- sapply(exps,
+                  function(e) bquote(lambda == .(e)),
+                  simplify = FALSE) 
+
+gts <- mapply(function(g, l) g + labs(subtitle = l),
+              gts, subtits,
+              SIMPLIFY = FALSE)  
+
+tema <- function(g) g + theme(text = element_text(size = 8),
+                              plot.subtitle = element_text(face = "bold",
+                                                           colour = "steelblue", size = 10))
+gts <- lapply(gts, tema)
+
+# Crear una única figura, darle un titulo y mostrarla
+plot_tr <- ggarrange(plotlist = gts, ncol = 3, nrow = 2, align = "hv")
+texto <- "Población transformada por año (Tukey)"
+titulo <- text_grob(texto, face = "bold", size = 14)
+plot_tr <- annotate_figure(plot_tr, top = titulo)
+# print(plot_tr) # Comentado para no interrumpir el flujo
+
+
+################################################################
+# SCRIPT 11.6: TRANSFORMACIONES BOX-COX A DATOS DE POBLACIÓN
+################################################################
+
+# Nota: Las variables 'datos' y 'Año' deben estar definidas (SCRIPT 11.4).
+
+# Transformaciones Box-Cox de la población para diferentes valores de lambda
+exp_2neg <- (datos[["Poblacion"]]^-2 - 1) / -2
+exp_1neg <- (datos[["Poblacion"]]^-1 - 1) / -1
+exp_1div2neg <- (datos[["Poblacion"]]^(-1/2) - 1) / (-1/2)
+exp_0 <- log(datos[["Poblacion"]])
+exp_1div2pos <- (datos[["Poblacion"]]^(1/2) - 1) / (1/2)
+exp_2pos <- (datos[["Poblacion"]]^2 - 1) / 2
+
+
+################################################################
+# SCRIPT 11.7: APLICACIÓN DE TRANSFORMACIONES BOX-COX ÓPTIMA
+################################################################
+
+library(DescTools)
+library(ggpubr)
+
+# Crear estructura con los datos a partir de la serie de tiempo (objeto "ts")
+# definida en el conjunto de datos "uspop".
+Año <- as.numeric(time(uspop))
+Poblacion <- as.numeric(window(uspop))
+datos <- data.frame(Año, Poblacion)
+
+# Buscar, aplicar y almacenar la mejor transformación Box-Cox usando funciones de R
+lambda_opt <- BoxCoxLambda(datos[["Poblacion"]], lower = -4, upper = 4)
+transf <- BoxCox(datos[["Poblacion"]], lambda_opt)
+datos <- data.frame(datos, Boxcox = transf)
+
+# Crear gráficos de los datos transformados con el lambda óptimo
+h <- gghistogram(datos, x = "Boxcox", bins = 7,
+                 color = "steelblue", fill = "steelblue", alpha = 0.7,
+                 xlab = "Población transformada", ylab = "Frecuencia")
+
+q <- ggqqplot(datos, x = "Boxcox", color = "steelblue", fill = "steelblue", alpha = 0.7,
+              xlab = "Cuantiles teóricos", ylab = "Población transformada")
+
+g <- ggscatter(datos, x = "Año", y = "Boxcox",
+               color = "steelblue", fill = "steelblue", alpha = 0.7,
+               xlab = "Año", ylab = "Población transformada")
+g <- g + scale_y_continuous(breaks = seq(3, 12, 3))
+
+# Preparar los gráficos de dispersión para formar una sola figura
+pls <- list(h, q, g)
+pls <- lapply(pls, function(g) g + theme(text = element_text(size = 8)))
+# Crear y mostrar una única figura con los tres gráficos con datos transformados
+plot_bc <- ggarrange(plotlist = pls, ncol = 3, nrow = 1,
+                     align = "hv", labels = "AUTO",
+                     font.label = list(size = 10, face = "bold", color = "steelblue"))
+
+texto <- "Población usando transformación Box-Cox optima"
+texto <- bquote(bold(.(t) * "(" * lambda^{"\\*"} ~ "=" ~ .(e) * ")"),
+                where = list(t = texto, e = round(lambda_opt, 3))) # Aquí usamos bquote para manejar la expresión matemática en el título
+
+titulo <- text_grob(texto, face = "bold", size = 14)
+plot_bc <- annotate_figure(plot_bc, top = titulo)
+# print(plot_bc) # Comentado para no interrumpir el flujo
+
+
+################################################################
+# SCRIPT 11.8: PRUEBA DE MANN-WHITNEY PARA EL EJEMPLO
+################################################################
+
+# Definir las muestras
+Interfaz_A <- c(2.7, 6.6, 1.6, 5.1, 3.7, 6.1, 5.0, 1.4, 1.8, 1.5, 3.0, 5.3)
+Interfaz_B <- c(5.0, 1.4, 5.6, 4.6, 6.7, 2.7, 1.3, 6.3, 3.7, 1.3, 6.8)
+
+# Establecer nivel de significación
+alfa <- 0.05
+
+# Hacer y mostrar la prueba de suma de rangos de Wilcoxon (Mann-Whitney)
+prueba <- wilcox.test(Interfaz_A, Interfaz_B,
+                      alternative = "two.sided", conf.level = 1 - alfa)
+print(prueba)
+
+
+################################################################
+# SCRIPT 11.9: PRUEBA DE RANGOS CON SIGNO DE WILCOXON
+################################################################
+
+# Definir las muestras
+Interfaz_A <- c(2.9, 6.1, 6.7, 4.7, 6.4, 5.7, 2.7, 6.9, 1.7, 6.4)
+Interfaz_B <- c(6.0, 2.8, 1.3, 4.7, 3.1, 1.8, 2.9, 4.0, 2.3, 1.6)
+
+# Establecer nivel de significación
+alfa <- 0.05
+
+# Hacer y mostrar la prueba de rangos con signo de Wilcoxon
+prueba <- wilcox.test(Interfaz_A, Interfaz_B, paired = TRUE,
+                      alternative = "greater", conf.level = 1 - alfa)
+print(prueba)
+
+
+################################################################
+# SCRIPT 11.10: EVALUACIÓN DE CONDICIONES PARA ANOVA
+################################################################
+
+library(broom)
+library(car)
+library(dplyr)
+library(purrr)
+library(knitr)
+
+# Construir la matriz de datos
+A <- c(95, 36, 58, 11, 56, 77, 49, 9, 11, 29, 28, 13)
+B <- c(22, 63, 26, 20, 24, 23, 23, 24, 53)
+C <- c(39, 77, 26, 34, 26, 26, 8, 49, 28, 40, 64, 7, 11, 7)
+D <- c(14, 8, 15, 10, 20, 6, 10, 13)
+
+Tiempo <- c(A, B, C, D)
+Criterio <- c(rep("A", length(A)), rep("B", length(B)),
+              rep("C", length(C)), rep("D", length(D)))
+Criterio <- factor(Criterio)
+
+datos <- data.frame(Tiempo, Criterio)
+
+# Establecer nivel de significación
+alfa <- 0.05
+
+# Revisar normalidad y homocedasticidad
+sw_tests <- by(Tiempo, Criterio, shapiro.test)
+normalidad <- sw_tests |> map(tidy) |> bind_rows(.id = "Criterio") |>
+    rename(W = statistic) |> dplyr::select(-method)
+lev_test <- leveneTest(Tiempo ~ Criterio, data = datos)
+homogeneidad_var <- tidy(lev_test) |> rename("Chi 2" = statistic)
+
+cat("Pruebas de normalidad Shapiro-Wilk:\n")
+cat(paste0("\n", kable(normalidad, digits = 3, format = "simple")), sep = "\n")
+
+cat("\nPrueba de homocedasticidad de Levene:\n")
+cat(paste0("\n", kable(homogeneidad_var, digits = 3, format = "simple")), sep = "\n")
+
+
+################################################################
+# SCRIPT 11.11: PRUEBA DE KRUSKAL-WALLIS Y POST-HOC
+################################################################
+
+# Aplicar la prueba de Kruskal-Wallis y mostrar los resultados
+prueba <- kruskal.test(Tiempo ~ Criterio, data = datos)
+cat("\nResultados de la prueba ómnibus\n")
+cat("-----\n")
+print(prueba)
+
+# Efectuar un procedimiento post-hoc de Benjamini y Hochberg
+# si se encuentran diferencias significativas.
+if (prueba[["p.value"]] < alfa) {
+    post_hoc <- pairwise.wilcox.test(datos[["Tiempo"]], datos[["Criterio"]],
+                                     p.adjust.method = "BH", paired = FALSE, exact = FALSE)
+    
+    # Reordenar la tabla de salida (para que el Grupo1 sea la primera columna)
+    post_hoc <- tidy(post_hoc) |> rename(Grupo1 = group2, Grupo2 = group1) |>
+        arrange(Grupo1) |> relocate(Grupo1)
+    
+    cat("Resultados del análisis post-hoc:\n")
+    cat(paste(" ", kable(post_hoc, digits = 3, format = "simple")), sep = "\n")
+}
+
+
+################################################################
+# SCRIPT 11.12: PRUEBA DE FRIEDMAN Y POST-HOC
+################################################################
+
+library(broom)
+library(dplyr)
+library(knitr)
+
+# Construir la matriz de datos
+A <- c(3.6, 4.2, 3.5, 3.2, 3.6, 3.5, 3.3, 3.5, 4.1, 3.7, 4.0, 3.5, 3.3, 3.4, 3.6)
+B <- c(4.4, 5.0, 4.3, 3.6, 4.5, 4.2, 3.9, 4.3, 4.8, 4.5, 4.8, 4.2, 3.7, 4.0, 4.5)
+C <- c(4.9, 5.0, 4.7, 3.2, 5.0, 4.6, 3.6, 4.9, 5.0, 5.0, 5.0, 4.4, 3.2, 3.7, 4.9)
+
+Puntuacion <- c(A, B, C)
+Interfaz <- c(rep("A", length(A)), rep("B", length(B)), rep("C", length(C)))
+Interfaz <- factor(Interfaz)
+Caso <- rep(1:15, 3) # Asume 15 casos, 3 mediciones por caso
+datos <- data.frame(Caso, Puntuacion, Interfaz)
+
+# Establecer nivel de significación
+alfa <- 0.01
+
+# Aplicar y mostrar la prueba de Friedman
+prueba <- friedman.test(Puntuacion ~ Interfaz | Caso, data = datos)
+cat("\nResultados de la prueba ómnibus\n")
+cat("\n")
+print(prueba)
+
+# Efectuar un procedimiento post-hoc de Holm
+# si se encuentran diferencias significativas.
+if (prueba[["p.value"]] < alfa) {
+    post_hoc <- pairwise.wilcox.test(datos[["Puntuacion"]], datos[["Interfaz"]],
+                                     p.adjust.method = "holm", paired = TRUE, exact = FALSE)
+    
+    # Reordenar la tabla de salida
+    post_hoc <- tidy(post_hoc) |> rename(Grupo1 = group2, Grupo2 = group1) |>
+        arrange(Grupo1) |> relocate(Grupo1)
+    
+    cat("Resultados del análisis post-hoc:\n")
+    cat(paste(" ", kable(post_hoc, digits = 3, format = "simple")), sep = "\n")
+}
+```
